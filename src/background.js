@@ -265,7 +265,7 @@ async function enqueue(raw, source, { dryRun = false } = {}) {
   const label = `#${map.num} ${map.title}`;
   if (map.premium && !settings.allowPremium) {
     await appendLog({ problemId, lang: lcLang, source, status: 'Skipped (premium)', title: map.title, num: map.num, slug: map.slug });
-    return { reason: `${label} is LeetCode Premium - skipped (enable in settings if you have Premium).`, level: 'warn' };
+    return { reason: `${label} is LeetCode Premium - skipped (enable in settings if you have Premium).`, level: 'gold' };
   }
 
   const key = `${problemId}|${lcLang}|${hashCode(raw.code)}`;
@@ -418,7 +418,7 @@ async function handleItem(item) {
   await setLocal({ synced });
 
   const ok = status === 'Accepted';
-  await notifyNeetCode(`${label}: ${status}`, ok ? 'ok' : 'warn', url);
+  await notifyNeetCode(`${label}: ${status}`, ok ? 'ok' : 'error', url);
   return 'done';
 }
 

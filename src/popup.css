@@ -8,6 +8,7 @@
   --ok: #16a34a;
   --warn: #d97706;
   --err: #dc2626;
+  --gold: #ca8a04;
   --idle: #9ca3af;
 }
 @media (prefers-color-scheme: dark) {
@@ -60,5 +61,7 @@ details input[type="number"] { width: 64px; font: inherit; }
 .log li .s.ok { background: var(--ok); }
 .log li .s.warn { background: var(--warn); }
 .log li .s.err { background: var(--err); }
+.log li .s.gold { background: var(--gold); }
+.log li .s.info { background: var(--accent); }
 .log li .d { grid-column: 1 / -1; font-size: 11px; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
 .log li .d a { color: var(--accent); }

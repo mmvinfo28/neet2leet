@@ -244,6 +244,7 @@ function ensureToastHost() {
       .toast.ok { background: #14532d; }
       .toast.warn { background: #7c2d12; }
       .toast.error { background: #7f1d1d; }
+      .toast.gold { background: #713f12; }
       .tag { font-weight: 600; opacity: .8; white-space: nowrap; }
       a { color: #bfdbfe; }
     </style>

@@ -3,13 +3,14 @@ const send = (msg) => chrome.runtime.sendMessage(msg);
 
 const SETTING_IDS = ['enabled', 'allowPremium', 'bulkSkipAcceptedOnLeetCode', 'resubmitIdentical', 'delaySec'];
 
+// green = accepted, gold = skipped (premium), orange = needs attention, red = any failed verdict/error
 function statusClass(status) {
   if (!status) return '';
   if (status === 'Accepted') return 'ok';
-  if (status === 'Dry run') return '';
-  if (/^(Skipped|Retry|Paused|Unmapped)/.test(status)) return 'warn';
-  if (/failed|Error|Timed out|not-logged-in/i.test(status)) return 'err';
-  return 'warn';
+  if (status === 'Dry run') return 'info';
+  if (/^Skipped/.test(status)) return 'gold';
+  if (/^(Retry|Paused|Unmapped)/.test(status)) return 'warn';
+  return 'err';
 }
 
 function fmtTime(ts) {
