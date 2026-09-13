@@ -127,7 +127,9 @@ async function mountPopup() {
   style.textContent = css.replace('html, body { height: 590px; overflow: hidden; }', '.popup { height: 590px; overflow: hidden; }')
     .replace(/\nbody \{/, '\n.popup {')
     // html2canvas knows nothing about <details> or flex/grid stretching: give it a plain block layout of the same size
-    + '\n.popup { display: block; height: auto; } .popup details { display: none; } .popup .log ul { max-height: 262px; overflow: hidden; } .popup .card { min-height: 0; }';
+    + '\n.popup { display: block; height: auto; } .popup details { display: none; } .popup .log ul { max-height: 262px; overflow: hidden; } .popup .card { min-height: 0; }'
+    // html2canvas ignores transforms on pseudo-elements: position the switch knob with `left` instead
+    + '\n.popup .switch input:checked + .track::before { transform: none; left: 15px; } .popup .switch .track { margin-right: 4px; }';
   document.head.append(style);
   await new Promise((res) => { const s = document.createElement('script'); s.src = '../../src/popup.js' + bust; s.onload = res; document.body.append(s); });
   await new Promise((r) => setTimeout(r, 300));

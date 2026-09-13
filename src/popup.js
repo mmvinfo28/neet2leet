@@ -70,6 +70,7 @@ function renderBulk(bulk) {
   $('bulkReverse').disabled = running;
   $('abortBulk').hidden = !running;
   const el = $('bulkText');
+  $('dismissBulk').hidden = !bulk || running;
   if (!bulk) { el.textContent = ''; return; }
   const target = bulk.direction === 'lc2nc' ? 'NeetCode' : 'LeetCode';
   const parts = [bulk.direction === 'lc2nc' ? 'LeetCode → NeetCode:' : 'NeetCode → LeetCode:'];
@@ -148,6 +149,7 @@ $('bulkReverse').addEventListener('click', async () => {
   refresh();
 });
 $('abortBulk').addEventListener('click', async () => { await send({ type: 'abortBulk' }); refresh(); });
+$('dismissBulk').addEventListener('click', async () => { await send({ type: 'clearBulk' }); refresh(); });
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && (changes.queue || changes.log || changes.bulk || changes.paused)) refresh();

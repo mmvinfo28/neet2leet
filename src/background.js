@@ -989,7 +989,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { ok: true };
       }
       case 'clearLog': {
-        await setLocal({ log: [] });
+        const { bulk } = await getLocal('bulk');
+        await setLocal({ log: [], bulk: bulk && bulk.running ? bulk : null });
+        return { ok: true };
+      }
+      case 'clearBulk': {
+        const { bulk } = await getLocal('bulk');
+        if (!bulk || !bulk.running) await setLocal({ bulk: null });
         return { ok: true };
       }
       case 'startBulk': {
