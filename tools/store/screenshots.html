@@ -6,7 +6,7 @@
 <style>
   body { margin: 0; padding: 24px; background: #222; color: #ddd; font: 14px system-ui, sans-serif; }
   .controls { margin-bottom: 16px; display: flex; gap: 12px; align-items: center; }
-  button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: #326be8; color: #fff; cursor: pointer; }
+  .controls button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: #326be8; color: #fff; cursor: pointer; }
   #out { white-space: pre; }
 
   /* ---- frames: exact Chrome Web Store sizes ---- */
@@ -31,7 +31,7 @@
   .grid { position: absolute; inset: 88px 72px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; align-content: start; }
   .grid h1 { grid-column: 1 / -1; font-size: 40px; margin: 0 0 8px; font-weight: 800; letter-spacing: -.6px; }
   .grid h1 em { font-style: normal; color: #6b9cff; }
-  .card { background: rgba(23, 29, 43, .9); border: 1px solid #2a3346; border-radius: 16px; padding: 26px; min-height: 250px; }
+  .grid .card { background: rgba(23, 29, 43, .9); border: 1px solid #2a3346; border-radius: 16px; padding: 26px; min-height: 250px; }
   .card .k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #6b9cff; font-weight: 700; margin-bottom: 12px; }
   .card h2 { font-size: 24px; margin: 0 0 12px; font-weight: 700; }
   .card p { margin: 0; font-size: 17px; line-height: 1.5; color: #c7cede; }
@@ -95,7 +95,8 @@
   <div class="m"><img src="../../assets/icon512.png" alt=""><div><div class="n">neet<b>bridge</b></div><div class="s">Get a problem accepted on NeetCode or LeetCode - the other site follows: code submitted, roadmap ticked.</div></div></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- dom-to-image renders through an SVG foreignObject, i.e. with the browser's own layout engine -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 <script>
 // Stubbed extension API so the real popup renders with sample data.
 const LOG = [
@@ -126,13 +127,15 @@ async function mountPopup() {
   const style = document.createElement('style');
   style.textContent = css.replace('html, body { height: 590px; overflow: hidden; }', '.popup { height: 590px; overflow: hidden; }')
     .replace(/\nbody \{/, '\n.popup {')
-    // html2canvas knows nothing about <details> or flex/grid stretching: give it a plain block layout of the same size
-    + '\n.popup { display: block; height: auto; } .popup details { display: none; } .popup .log ul { max-height: 262px; overflow: hidden; } .popup .card { min-height: 0; }'
-    // html2canvas ignores transforms on pseudo-elements: position the switch knob with `left` instead
-    + '\n.popup .switch input:checked + .track::before { transform: none; left: 15px; } .popup .switch .track { margin-right: 4px; }';
+    + '\n.popup { display: flex; flex-direction: column; } .popup .log ul { overflow: hidden; }'
+    // the percent-encoded chevron data URL breaks inside the foreignObject serialisation; use base64 instead
+    + '\n.popup select { background-image: url("data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8a94a6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>') + '"); }';
   document.head.append(style);
   await new Promise((res) => { const s = document.createElement('script'); s.src = '../../src/popup.js' + bust; s.onload = res; document.body.append(s); });
   await new Promise((r) => setTimeout(r, 300));
+  // dom-to-image clones the DOM: reflect JS-set form state into attributes so the clone shows the same values
+  for (const sel of document.querySelectorAll('#popup-host select')) for (const o of sel.options) o.toggleAttribute('selected', o.value === sel.value);
+  for (const c of document.querySelectorAll('#popup-host input[type=checkbox]')) c.toggleAttribute('checked', c.checked);
 }
 
 async function render() {
@@ -141,8 +144,7 @@ async function render() {
   const files = {};
   for (const [id, name] of [['shot1', 'screenshot-1'], ['shot2', 'screenshot-2'], ['tile', 'promo-small-440x280'], ['marquee', 'promo-marquee-1400x560']]) {
     const el = document.getElementById(id);
-    const canvas = await html2canvas(el, { scale: 1, useCORS: true, backgroundColor: null, width: el.offsetWidth, height: el.offsetHeight });
-    files[name] = canvas.toDataURL('image/png');
+    files[name] = await domtoimage.toPng(el, { width: el.offsetWidth, height: el.offsetHeight, cacheBust: true });
   }
   const r = await fetch('/save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(files) });
   out.textContent = (await r.json()).join('\n');
