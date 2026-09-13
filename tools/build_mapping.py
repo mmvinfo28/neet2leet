@@ -36,7 +36,7 @@ NC_META = 'https://neetcode.io/api/getProblemMetadataFunctionHttp'
 LC_ALL = 'https://leetcode.com/api/problems/all/'
 LC_GQL = 'https://leetcode.com/graphql'
 YT_OEMBED = 'https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={vid}&format=json'
-UA = 'Mozilla/5.0 (neet2leet mapping builder)'
+UA = 'Mozilla/5.0 (neetbridge mapping builder)'
 
 NC2LC = {'python': 'python3', 'java': 'java', 'cpp': 'cpp', 'javascript': 'javascript', 'typescript': 'typescript',
          'csharp': 'csharp', 'go': 'golang', 'kotlin': 'kotlin', 'swift': 'swift', 'rust': 'rust', 'c': 'c',

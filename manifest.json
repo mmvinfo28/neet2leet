@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "neet2leet",
+  "name": "neetbridge",
   "version": "0.1.0",
   "description": "Two-way sync between NeetCode and LeetCode: accepted solutions are submitted to the other site, the NeetCode roadmap gets ticked.",
   "minimum_chrome_version": "116",
@@ -61,7 +61,7 @@
   ],
   "action": {
     "default_popup": "src/popup.html",
-    "default_title": "neet2leet",
+    "default_title": "neetbridge",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

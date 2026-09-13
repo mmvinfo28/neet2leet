@@ -41,7 +41,7 @@ let toastTimer = null;
 function ensureToastHost() {
   if (toastHost && document.contains(toastHost)) return toastHost;
   toastHost = document.createElement('div');
-  toastHost.id = 'neet2leet-toast-host';
+  toastHost.id = 'neetbridge-toast-host';
   const shadow = toastHost.attachShadow({ mode: 'open' });
   shadow.innerHTML = `
     <style>
@@ -61,7 +61,7 @@ function ensureToastHost() {
       .tag { font-weight: 600; opacity: .8; white-space: nowrap; }
       a { color: #bfdbfe; }
     </style>
-    <div class="toast"><span class="tag">neet2leet</span><span class="msg"></span></div>`;
+    <div class="toast"><span class="tag">neetbridge</span><span class="msg"></span></div>`;
   (document.body || document.documentElement).appendChild(toastHost);
   return toastHost;
 }

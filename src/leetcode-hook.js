@@ -5,7 +5,7 @@
 //   * GET  /submissions/detail/<id>/check/     -> {state: "SUCCESS", status_msg: "Accepted", ...}
 // When a submission reaches a final verdict the code is handed to the content script.
 //
-// Only page-initiated requests are visible here. The submissions neet2leet itself sends into a
+// Only page-initiated requests are visible here. The submissions neetbridge itself sends into a
 // leetcode.com tab (NeetCode -> LeetCode direction) run in the isolated world and never pass
 // through these hooks, so the two directions cannot feed each other.
 (() => {

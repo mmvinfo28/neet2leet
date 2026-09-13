@@ -1,6 +1,6 @@
-# Privacy policy — neet2leet
+# Privacy policy — neetbridge
 
-neet2leet runs entirely inside your browser.
+neetbridge runs entirely inside your browser.
 
 **What it processes**
 

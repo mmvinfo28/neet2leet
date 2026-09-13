@@ -1,9 +1,9 @@
 {
-  "name": "neet2leet",
+  "name": "neetbridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Chrome extension: solve on NeetCode, auto-submit the accepted solution to LeetCode.",
+  "description": "Chrome extension: two-way sync between NeetCode and LeetCode (accepted solutions, roadmap ticks).",
   "scripts": {
     "test": "node test/run.js && node test/sigfix.js"
   },

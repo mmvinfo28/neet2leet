@@ -199,12 +199,12 @@ async function collectAccepted(options) {
     // Shape: { "<list or topic>": ["contains-duplicate/", "two-sum/", ...], ... } - LeetCode links,
     // grouped by list. The background turns them into NeetCode slugs via the mapping.
     const completed = await callNeetCode('callableFunctionHttp', { functionId: 'getCompletedProblems' }, headers);
-    console.info('[neet2leet] getCompletedProblems raw response:', completed);
+    console.info('[neetbridge] getCompletedProblems raw response:', completed);
     const resolved = await chrome.runtime.sendMessage({ type: 'N2L_COMPLETED_TO_IDS', raw: completed });
     ids = (resolved && resolved.ids) || [];
     const unknown = (resolved && resolved.unknown) || [];
-    console.info(`[neet2leet] completed -> ${ids.length} NeetCode problems` + (unknown.length ? `; ${unknown.length} not in the mapping: ${unknown.slice(0, 10).join(', ')}` : ''));
-    if (!ids.length) console.warn('[neet2leet] getCompletedProblems returned no recognisable problems');
+    console.info(`[neetbridge] completed -> ${ids.length} NeetCode problems` + (unknown.length ? `; ${unknown.length} not in the mapping: ${unknown.slice(0, 10).join(', ')}` : ''));
+    if (!ids.length) console.warn('[neetbridge] getCompletedProblems returned no recognisable problems');
   } catch (err) {
     listError = err;
   }
@@ -232,7 +232,7 @@ async function collectAccepted(options) {
     try {
       const meta = await callNeetCode('getProblemMetadataFunctionHttp', { problemId }, headers);
       const best = latestAccepted(meta && meta.submissionHistory);
-      if (done < 3) console.info('[neet2leet] metadata sample', problemId, { completed: meta && meta.completed, history: meta && meta.submissionHistory, picked: best && { language: best.language, date: best.date, codeLength: best.code.length } });
+      if (done < 3) console.info('[neetbridge] metadata sample', problemId, { completed: meta && meta.completed, history: meta && meta.submissionHistory, picked: best && { language: best.language, date: best.date, codeLength: best.code.length } });
       if (best) {
         found += 1;
         batch.push({
@@ -243,7 +243,7 @@ async function collectAccepted(options) {
         });
       }
     } catch (err) {
-      console.warn('[neet2leet] metadata failed for', problemId, err);
+      console.warn('[neetbridge] metadata failed for', problemId, err);
     }
     done += 1;
     progress({ phase: 'collecting', done, total: ids.length, found });
@@ -262,7 +262,7 @@ let toastTimer = null;
 function ensureToastHost() {
   if (toastHost && document.contains(toastHost)) return toastHost;
   toastHost = document.createElement('div');
-  toastHost.id = 'neet2leet-toast-host';
+  toastHost.id = 'neetbridge-toast-host';
   const shadow = toastHost.attachShadow({ mode: 'open' });
   shadow.innerHTML = `
     <style>
@@ -282,7 +282,7 @@ function ensureToastHost() {
       .tag { font-weight: 600; opacity: .8; white-space: nowrap; }
       a { color: #bfdbfe; }
     </style>
-    <div class="toast"><span class="tag">neet2leet</span><span class="msg"></span></div>`;
+    <div class="toast"><span class="tag">neetbridge</span><span class="msg"></span></div>`;
   (document.body || document.documentElement).appendChild(toastHost);
   return toastHost;
 }

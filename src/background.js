@@ -152,7 +152,7 @@ async function resolveFix(item) {
       return { fix, source: 'live' };
     }
   } catch (err) {
-    console.warn('[neet2leet] live signature check failed', err);
+    console.warn('[neetbridge] live signature check failed', err);
   }
   return { fix: guessFix(item.code, lcLang), source: 'guess' };
 }
@@ -390,7 +390,7 @@ async function processQueue() {
       });
     }
   } catch (err) {
-    console.error('[neet2leet] queue error', err);
+    console.error('[neetbridge] queue error', err);
     await appendLog({ status: 'Error', detail: `${String((err && err.message) || err)} - retrying in 1 min` });
     await chrome.alarms.create(ALARM, { when: Date.now() + 60_000 });
   } finally {
@@ -425,7 +425,7 @@ async function handleItem(item) {
       code = applied.code;
       fixNotes = applied.notes;
     } catch (err) {
-      console.warn('[neet2leet] signature fix skipped', err);
+      console.warn('[neetbridge] signature fix skipped', err);
     }
     const r = await runInTab(tabId, lcSubmitInPage, { slug, questionId, lang: item.lcLang, code });
     await setLocal({ lastSubmitAt: Date.now() });
@@ -503,7 +503,7 @@ async function handleReverseItem(item) {
       code = applied.code;
       notes = applied.notes;
     } catch (err) {
-      console.warn('[neet2leet] reverse signature fix skipped', err);
+      console.warn('[neetbridge] reverse signature fix skipped', err);
     }
     let r;
     try {
@@ -577,7 +577,7 @@ async function resolveReverseFix(item) {
       return reverseFix(fix);
     }
   } catch (err) {
-    console.warn('[neet2leet] live reverse signature check failed', err);
+    console.warn('[neetbridge] live reverse signature check failed', err);
   }
   return guessReverseFix(item.code, lang);
 }
@@ -629,7 +629,7 @@ async function startReverseBulk(options = {}) {
       const c = await chrome.tabs.sendMessage(tabId, { type: 'N2L_NC_COMPLETED' });
       if (c && c.ok) done = new Set((await completedToIds(c.raw)).ids);
     } catch (err) {
-      console.warn('[neet2leet] could not read NeetCode progress', err);
+      console.warn('[neetbridge] could not read NeetCode progress', err);
     }
 
     const settings = await getSettings();
@@ -650,7 +650,7 @@ async function startReverseBulk(options = {}) {
           const r = await runInTab(tabId, lcLastAcceptedInPage, { slug: e.slug });
           if (r && r.ok && r.code) { code = r.code; lang = r.lang; }
         } catch (err) {
-          console.warn('[neet2leet] could not fetch accepted code for', e.slug, err);
+          console.warn('[neetbridge] could not fetch accepted code for', e.slug, err);
         }
       }
       await enqueueReverse({ slug: e.slug, lang, code: code || '# accepted on LeetCode', at: Date.now() }, 'bulk',
@@ -681,7 +681,7 @@ async function notifyDesktop(ok, label, status, detail, url) {
       priority: ok ? 0 : 1,
     });
   } catch (err) {
-    console.warn('[neet2leet] notification failed', err);
+    console.warn('[neetbridge] notification failed', err);
   }
 }
 
@@ -907,7 +907,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg && msg.type) {
       case 'N2L_ACCEPTED': {
         const settings = await getSettings();
-        if (!settings.enabled) return { reason: 'neet2leet is paused (enable it in the popup).', level: 'info' };
+        if (!settings.enabled) return { reason: 'neetbridge is paused (enable it in the popup).', level: 'info' };
         return enqueue(msg, 'live');
       }
       case 'N2L_LC_ACCEPTED':
