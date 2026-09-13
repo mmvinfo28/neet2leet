@@ -81,6 +81,15 @@ Unofficial. Not affiliated with NeetCode or LeetCode. Both sites' internal endpo
 
 Plain JavaScript, no build step. Load the folder as an unpacked extension and reload it after edits. `npm test` runs the queue-logic harness (live submit, bulk dedupe, login pause/resume, mapping fallback, signature fixes) against a fake `chrome` API plus the signature-fix unit tests. Service-worker logs: `chrome://extensions` → neet2leet → *service worker*. Page-side logs are prefixed with `[neet2leet]` in the neetcode.io console.
 
+## Publishing to the Chrome Web Store
+
+1. One-time developer registration at the [Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole) (USD 5).
+2. Build the upload: `powershell -ExecutionPolicy Bypass -File tools/pack.ps1` -> `neet2leet-<version>.zip` (manifest at the archive root, no tests/tools).
+3. New item -> upload the zip -> fill in the listing: description, 128 px icon (`icons/icon128.png`), at least one 1280x800 screenshot, category *Developer Tools*, single-purpose description, a justification for each permission (`storage`, `scripting`, `alarms`, `notifications` and the three host permissions), the data-usage form (no data collected), and a privacy policy URL - point it at [PRIVACY.md](PRIVACY.md) in this repository.
+4. Submit for review. Reviews usually take a few days; broad host permissions can take longer.
+
+The blue *Verified* badge next to the publisher name comes from verifying a website you own in the dashboard (Search Console). *Featured* is picked by Google's reviewers, not applied for. Until the listing is live, users install the folder as an unpacked extension in Developer mode.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
