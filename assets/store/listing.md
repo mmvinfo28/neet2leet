@@ -61,7 +61,7 @@ Synchronise accepted coding-problem solutions between neetcode.io and leetcode.c
 
 **Remote code:** No, I am not using remote code.
 
-**Data usage:** the extension handles *Website content* (the code the user submits) and *Authentication information* (the user's existing sessions on the two sites) locally, to perform the sync between the two sites the user is logged in to. Nothing is transmitted to the developer. Tick the three certifications (not sold, not used for unrelated purposes, not used for creditworthiness).
+**Data usage:** the extension handles *Website content* (the code the user submits) and *Authentication information* (the user's existing sessions on the two sites) locally, to perform the sync between the two sites the user is logged in to. Nothing is transmitted to the developer. Tick every certification shown (the dashboard has shown two or three over time: not sold, not used for unrelated purposes, not used for creditworthiness) - all of them hold.
 
 **Privacy policy URL:** https://github.com/mmvinfo28/neetbridge/blob/master/PRIVACY.md
 
