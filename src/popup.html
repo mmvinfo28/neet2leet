@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>neet2leet</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand">neet<span>2</span>leet</div>
+    <label class="switch" title="Auto-submit accepted NeetCode solutions to LeetCode">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <section class="status">
+    <div class="row">
+      <span class="dot" id="lcDot"></span>
+      <span id="lcStatus">Checking LeetCode login…</span>
+      <button class="link" id="openLc">open</button>
+    </div>
+    <div class="row" id="pausedRow" hidden>
+      <span class="dot warn"></span>
+      <span id="pausedText"></span>
+      <button class="link" id="resume">Resume</button>
+    </div>
+    <div class="row">
+      <span class="dot idle" id="queueDot"></span>
+      <span id="queueText">Queue empty</span>
+      <button class="link" id="clearQueue" hidden>clear</button>
+    </div>
+  </section>
+
+  <section class="bulk">
+    <div class="row">
+      <button id="bulk" class="primary">Sync all accepted from NeetCode</button>
+      <button id="abortBulk" hidden>Stop</button>
+    </div>
+    <div class="row small">
+      <label><input type="checkbox" id="dryRun" checked> dry run: collect only, submit nothing</label>
+    </div>
+    <div class="row small">
+      <label><input type="checkbox" id="scanAll"> scan all problems (slow, only if the list is empty)</label>
+    </div>
+    <div id="bulkText" class="small muted"></div>
+  </section>
+
+  <details class="settings">
+    <summary>Settings</summary>
+    <label><input type="checkbox" id="allowPremium"> Submit to LeetCode Premium problems (needs LC Premium)</label>
+    <label><input type="checkbox" id="bulkSkipAcceptedOnLeetCode"> Bulk: skip problems already accepted on LeetCode</label>
+    <label><input type="checkbox" id="resubmitIdentical"> Resubmit code that was already accepted before</label>
+    <label>Gap between submissions <input type="number" id="delaySec" min="10" max="600" step="5"> s</label>
+  </details>
+
+  <section class="log">
+    <div class="row">
+      <strong>Recent</strong>
+      <button class="link" id="clearLog">clear</button>
+    </div>
+    <ul id="log"></ul>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>
