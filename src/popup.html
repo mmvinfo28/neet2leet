@@ -7,40 +7,44 @@
 </head>
 <body>
   <header>
-    <div class="brand">neet<span>bridge</span></div>
+    <div class="brand"><img src="../icons/icon48.png" alt="" width="26" height="26"><span>neet<b>bridge</b></span></div>
     <div class="statuses">
-      <span class="pill" id="ncPill" title="NeetCode session"><span class="dot" id="ncDot"></span><span id="ncStatus">NeetCode</span></span>
-      <span class="pill" id="lcPill" title="LeetCode session"><span class="dot" id="lcDot"></span><span id="lcStatus">LeetCode</span></span>
+      <button class="pill" id="ncPill" title="NeetCode session"><span class="dot" id="ncDot"></span><span id="ncStatus">NeetCode</span></button>
+      <button class="pill" id="lcPill" title="LeetCode session"><span class="dot" id="lcDot"></span><span id="lcStatus">LeetCode</span></button>
     </div>
   </header>
 
   <section class="directions">
-    <div class="dir">
-      <span class="arrow">NeetCode → LeetCode</span>
-      <select id="nc2lc">
-        <option value="off">off</option>
-        <option value="submit">submit accepted code</option>
-      </select>
+    <div class="card">
+      <div class="card-title"><span class="site nc">NeetCode</span><span class="arr">→</span><span class="site lc">LeetCode</span></div>
+      <label class="field">When a NeetCode submission is accepted
+        <select id="nc2lc">
+          <option value="off">do nothing</option>
+          <option value="submit">submit the code to LeetCode</option>
+        </select>
+      </label>
+      <button id="bulk" class="sync">Sync everything I solved on NeetCode</button>
     </div>
-    <div class="dir">
-      <span class="arrow">LeetCode → NeetCode</span>
-      <select id="lc2nc">
-        <option value="off">off</option>
-        <option value="mark">tick the roadmap</option>
-        <option value="submit">tick + submit code</option>
-      </select>
+    <div class="card">
+      <div class="card-title"><span class="site lc">LeetCode</span><span class="arr">→</span><span class="site nc">NeetCode</span></div>
+      <label class="field">When a LeetCode submission is accepted
+        <select id="lc2nc">
+          <option value="off">do nothing</option>
+          <option value="mark">tick the NeetCode roadmap</option>
+          <option value="submit">tick + submit code to NeetCode</option>
+        </select>
+      </label>
+      <button id="bulkReverse" class="sync">Sync everything I solved on LeetCode</button>
     </div>
   </section>
 
-  <section class="bulk">
-    <div class="row">
-      <button id="bulk" class="primary">Sync all →</button>
-      <button id="bulkReverse" class="primary alt">← Sync all</button>
-      <button id="abortBulk" hidden>Stop</button>
-      <label class="small check"><input type="checkbox" id="dryRun" checked> dry run</label>
-      <label class="small check" title="Only if the NeetCode completed list comes back empty: walk every problem instead (slow)"><input type="checkbox" id="scanAll"> scan all</label>
-    </div>
-    <div id="bulkText" class="small muted"></div>
+  <section class="bulkbar">
+    <label class="check" title="Sync buttons only collect and list what they would do; nothing is submitted or ticked."><input type="checkbox" id="dryRun" checked> Preview only</label>
+    <span id="bulkText" class="small muted"></span>
+    <button id="abortBulk" class="mini" hidden>Stop</button>
+  </section>
+
+  <section class="queue">
     <div class="row" id="pausedRow" hidden>
       <span class="dot warn"></span>
       <span id="pausedText" class="small"></span>
@@ -55,9 +59,9 @@
 
   <details class="settings">
     <summary>Settings</summary>
-    <label><input type="checkbox" id="allowPremium"> Submit to LeetCode Premium problems (needs Premium)</label>
-    <label><input type="checkbox" id="notify"> Desktop notification with every verdict</label>
-    <label>Gap between submissions <input type="number" id="delaySec" min="10" max="600" step="5"> s</label>
+    <label class="check"><input type="checkbox" id="allowPremium"> Also submit LeetCode Premium problems (needs Premium)</label>
+    <label class="check"><input type="checkbox" id="notify"> Desktop notification with every verdict</label>
+    <label class="check">Wait <input type="number" id="delaySec" min="10" max="600" step="5"> s between submissions</label>
   </details>
 
   <section class="log">

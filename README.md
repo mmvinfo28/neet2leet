@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon256.png" width="96" alt="neetbridge"></p>
+
 # neetbridge
 
 Two-way sync between [NeetCode](https://neetcode.io) and [LeetCode](https://leetcode.com), as a Chrome extension:
@@ -26,20 +28,22 @@ Works on Chrome, Edge, Brave and other Chromium browsers (Manifest V3, Chrome 11
 
 | Control | Effect |
 |---|---|
-| **NeetCode → LeetCode** | `off` · `submit accepted code` (default). |
-| **LeetCode → NeetCode** | `off` · `tick the roadmap` (default) · `tick + submit code`. |
-| Submit to LeetCode Premium problems | 161 of the 588 mapped problems are Premium on LeetCode; off by default. |
+| **NeetCode → LeetCode** card | When a NeetCode submission is accepted: `do nothing` · `submit the code to LeetCode` (default). |
+| **LeetCode → NeetCode** card | When a LeetCode submission is accepted: `do nothing` · `tick the NeetCode roadmap` (default) · `tick + submit code to NeetCode`. |
+| *Sync everything I solved on …* | Backfill button in each card, see below. |
+| Preview only | Backfills only collect and list what they would do (see *Recent*); untick to run them for real. |
+| Also submit LeetCode Premium problems | 161 of the 588 mapped problems are Premium on LeetCode; off by default. |
 | Desktop notification | Windows/macOS notification with every verdict; click it to open the submission. |
-| Gap between submissions | Minimum seconds between two submissions (any direction); 30 by default, 10 minimum. |
+| Wait … s between submissions | Minimum gap between two submissions (any direction); 30 by default, 10 minimum. |
 
 Identical code is never sent twice, and backfills skip whatever is already accepted / ticked on the target site.
 
 ## Backfill (bulk sync)
 
-Click the extension icon. Leave **dry run** ticked the first time: it collects everything and lists in *Recent* what *would* happen, without touching either site. Untick it and run again for real.
+Click the extension icon. Leave **Preview only** ticked the first time: the sync collects everything and lists in *Recent* what *would* happen, without touching either site. Untick it and run again for real.
 
-- **Sync all →** (NeetCode → LeetCode) — reads your completed problems on NeetCode, takes the latest accepted submission of each and queues them for LeetCode (problems already accepted on LeetCode are skipped).
-- **← Sync all** (LeetCode → NeetCode) — every problem accepted on LeetCode that exists on NeetCode and is not ticked there yet gets ticked; with the `tick + submit code` level the latest accepted LeetCode submission is fetched and run through NeetCode's judge as well.
+- **Sync everything I solved on NeetCode** — reads your completed problems on NeetCode, takes the latest accepted submission of each and queues them for LeetCode (problems already accepted on LeetCode are skipped). If NeetCode's completed list cannot be read, every problem is scanned instead (a few minutes).
+- **Sync everything I solved on LeetCode** — every problem accepted on LeetCode that exists on NeetCode and is not ticked there yet gets ticked; with the `tick + submit code` level the latest accepted LeetCode submission is fetched and run through NeetCode's judge as well.
 
 Submissions are spaced out (30 s by default) to stay well within both sites' rate limits, so 150 problems take roughly 75 minutes; keep the browser open. Ticks alone are quick.
 
@@ -73,7 +77,7 @@ python tools/build_mapping.py          # add --curl behind corporate proxies
 - **Dates.** Backfilled submissions carry today's date on LeetCode; there is no way to backdate.
 - **Languages.** Python, Java, C++, JavaScript, TypeScript, C#, Go, Kotlin, Swift, Rust, C, Ruby, Scala, Dart. SQL problems are not supported.
 - **Sessions expire.** If LeetCode logs you out the queue pauses; log in again and press *Resume*.
-- The bulk collection depends on NeetCode's private `getCompletedProblems` response shape. If NeetCode changes it, tick *scan all problems* (slower: one request per problem).
+- The bulk collection depends on NeetCode's private `getCompletedProblems` response shape. If NeetCode changes it, the sync falls back to scanning every problem (slower: one request per problem).
 
 Unofficial. Not affiliated with NeetCode or LeetCode. Both sites' internal endpoints can change without notice.
 
@@ -85,7 +89,7 @@ Plain JavaScript, no build step. Load the folder as an unpacked extension and re
 
 1. One-time developer registration at the [Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole) (USD 5).
 2. Build the upload: `powershell -ExecutionPolicy Bypass -File tools/pack.ps1` -> `neetbridge-<version>.zip` (manifest at the archive root, no tests/tools).
-3. New item -> upload the zip -> fill in the listing: description, 128 px icon (`icons/icon128.png`), at least one 1280x800 screenshot, category *Developer Tools*, single-purpose description, a justification for each permission (`storage`, `scripting`, `alarms`, `notifications` and the three host permissions), the data-usage form (no data collected), and a privacy policy URL - point it at [PRIVACY.md](PRIVACY.md) in this repository.
+3. New item -> upload the zip -> fill in the listing: description, 128 px icon (`icons/icon128.png`; larger renders in `assets/`), at least one 1280x800 screenshot, category *Developer Tools*, single-purpose description, a justification for each permission (`storage`, `scripting`, `alarms`, `notifications` and the three host permissions), the data-usage form (no data collected), and a privacy policy URL - point it at [PRIVACY.md](PRIVACY.md) in this repository.
 4. Submit for review. Reviews usually take a few days; broad host permissions can take longer.
 
 The blue *Verified* badge next to the publisher name comes from verifying a website you own in the dashboard (Search Console). *Featured* is picked by Google's reviewers, not applied for. Until the listing is live, users install the folder as an unpacked extension in Developer mode.

@@ -970,13 +970,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'checkNeetCode': {
         const tabs = await chrome.tabs.query({ url: 'https://neetcode.io/*' });
         if (!tabs.length) return { loggedIn: false, noTab: true };
+        let stale = false;
         for (const t of tabs) {
           try {
             const r = await chrome.tabs.sendMessage(t.id, { type: 'N2L_PING' });
-            if (r && r.ok) return { loggedIn: !!r.loggedIn };
-          } catch { /* tab without content script */ }
+            if (r && r.ok && r.loggedIn !== undefined) return { loggedIn: !!r.loggedIn };
+            if (r && r.ok) stale = true;   // content script from before the last extension reload
+          } catch { stale = true; }
         }
-        return { loggedIn: false, error: 'Reload the neetcode.io tab.' };
+        return { loggedIn: false, stale, error: 'Reload the neetcode.io tab.' };
       }
       case 'resume': {
         await setLocal({ paused: null });

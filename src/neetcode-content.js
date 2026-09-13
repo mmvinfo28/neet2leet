@@ -209,14 +209,15 @@ async function collectAccepted(options) {
     listError = err;
   }
 
-  if (!ids.length && options.scanAll) {
-    // Fallback: walk every LeetCode-style problem NeetCode has (slow: one request per problem).
+  if (!ids.length) {
+    // Fallback when the completed list is unusable: walk every LeetCode-style problem NeetCode has
+    // (one request per problem, a few minutes).
+    if (listError) console.warn('[neetbridge] completed list failed, scanning every problem instead:', listError);
+    progress({ phase: 'scanning' });
     const list = await callNeetCode('getProblemListFunctionHttp', {}, {});
     ids = Object.keys(list || {}).filter((k) => list[k] && list[k].tag === 'NeetCode150');
   }
-  if (!ids.length) {
-    throw listError || new Error('Could not read your completed problems from NeetCode. Try "Scan all problems" in the popup.');
-  }
+  if (!ids.length) throw listError || new Error('Could not read the NeetCode problem list.');
 
   let done = 0;
   let found = 0;

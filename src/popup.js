@@ -36,8 +36,10 @@ function renderLog(log) {
     const li = document.createElement('li');
     const t = document.createElement('span');
     t.className = 't';
-    const dir = e.direction === 'lc2nc' ? '← ' : '→ ';
-    t.textContent = (e.num ? `${dir}#${e.num} ${e.title}` : (e.problemId || e.status || ''));
+    const dir = document.createElement('span');
+    dir.className = 'dir';
+    dir.textContent = e.direction === 'lc2nc' ? '←' : '→';
+    t.append(dir, document.createTextNode(e.num ? ` #${e.num} ${e.title}` : ` ${e.problemId || e.status || ''}`));
     t.title = `${fmtTime(e.at)} · ${e.direction === 'lc2nc' ? 'LeetCode → NeetCode' : 'NeetCode → LeetCode'} · ${e.source || ''} · ${e.lang || ''}`;
     const s = document.createElement('span');
     s.className = `s ${statusClass(e.status)}`;
@@ -73,11 +75,12 @@ function renderBulk(bulk) {
   const parts = [bulk.direction === 'lc2nc' ? 'LeetCode → NeetCode:' : 'NeetCode → LeetCode:'];
   if (bulk.phase === 'starting') parts.push('starting…');
   if (bulk.phase === 'listing') parts.push('reading your completed problems…');
+  if (bulk.phase === 'scanning') parts.push('completed list unavailable, scanning every problem (a few minutes)…');
   if (bulk.phase === 'collecting') parts.push(`collecting ${bulk.done}/${bulk.total} (found ${bulk.found})`);
   if (bulk.phase === 'done') parts.push(`collected ${bulk.found} from ${bulk.done} problems.`);
   if (bulk.phase === 'aborted') parts.push('stopped.');
   if (bulk.phase === 'error') parts.push(`error: ${bulk.error}`);
-  if (bulk.queued) parts.push(bulk.dryRun ? `${bulk.queued} would be synced to ${target} (dry run, see Recent).` : `${bulk.queued} queued for ${target}.`);
+  if (bulk.queued) parts.push(bulk.dryRun ? `${bulk.queued} would go to ${target} (preview, see Recent).` : `${bulk.queued} queued for ${target}.`);
   el.textContent = parts.join(' ');
 }
 
@@ -111,6 +114,7 @@ async function checkSessions() {
   send({ type: 'checkNeetCode' }).then((r) => {
     if (r && r.loggedIn) { $('ncDot').className = 'dot ok'; $('ncStatus').textContent = 'NeetCode'; $('ncPill').title = 'NeetCode: logged in'; }
     else if (r && r.noTab) { $('ncDot').className = 'dot idle'; $('ncStatus').textContent = 'NeetCode: no tab'; $('ncPill').title = 'Open neetcode.io in a tab to check the session'; }
+    else if (r && r.stale) { $('ncDot').className = 'dot warn'; $('ncStatus').textContent = 'NeetCode: reload tab'; $('ncPill').title = 'The neetcode.io tab still runs an older version of the extension - reload it (F5)'; }
     else { $('ncDot').className = 'dot err'; $('ncStatus').textContent = 'NeetCode: log in'; $('ncPill').title = (r && r.error) || 'Not logged in on neetcode.io'; }
   }).catch(() => {});
 }
@@ -135,7 +139,7 @@ $('clearQueue').addEventListener('click', async () => { await send({ type: 'clea
 $('clearLog').addEventListener('click', async () => { await send({ type: 'clearLog' }); refresh(); });
 $('bulk').addEventListener('click', async () => {
   $('bulk').disabled = true;
-  await send({ type: 'startBulk', options: { scanAll: $('scanAll').checked, dryRun: $('dryRun').checked } });
+  await send({ type: 'startBulk', options: { dryRun: $('dryRun').checked } });
   refresh();
 });
 $('bulkReverse').addEventListener('click', async () => {
