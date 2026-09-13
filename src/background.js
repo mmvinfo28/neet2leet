@@ -441,7 +441,7 @@ async function handleItem(item) {
         return 'retry';
       }
       await appendLog({ ...logBase(item), status: 'Submit failed', detail: `${r.error}${r.status ? ' HTTP ' + r.status : ''}: ${r.detail || ''}`.trim() });
-      await notifyNeetCode(`${label}: submit failed (${r.error})`, 'error');
+      await notifySites(`${label}: submit failed (${r.error})`, 'error');
       return 'done';
     }
     submissionId = r.submissionId;
@@ -473,7 +473,7 @@ async function handleItem(item) {
   await setLocal({ synced });
 
   const ok = status === 'Accepted';
-  await notifyNeetCode(`${label}: ${status}`, ok ? 'ok' : 'error', url);
+  await notifySites(`${label}: ${status}`, ok ? 'ok' : 'error', url);
   await notifyDesktop(ok, label, status, detail, url);
   return 'done';
 }
@@ -552,7 +552,7 @@ async function handleReverseItem(item) {
   await setLocal({ synced });
 
   const ok = status === 'Accepted';
-  await notifyLeetCode(`${label}: ${item.mode === 'submit' ? status : 'ticked'}`, ok ? 'ok' : 'error', problemUrl);
+  await notifySites(`${label}: ${item.mode === 'submit' ? status : 'ticked'}`, ok ? 'ok' : 'error', problemUrl);
   await notifyDesktop(ok, `${label} (#${num})`, item.mode === 'submit' ? `${status} on NeetCode` : 'Ticked on NeetCode', detail, problemUrl);
   return 'done';
 }
@@ -582,10 +582,6 @@ async function resolveReverseFix(item) {
   return guessReverseFix(item.code, lang);
 }
 
-async function notifyLeetCode(text, level, url) {
-  const tabs = await chrome.tabs.query({ url: 'https://leetcode.com/*' });
-  await Promise.all(tabs.map((t) => chrome.tabs.sendMessage(t.id, { type: 'N2L_RESULT', text, level, url }).catch(() => {})));
-}
 
 async function getNeetCodeTabId() {
   const tabs = await chrome.tabs.query({ url: 'https://neetcode.io/*' });
@@ -696,8 +692,9 @@ if (chrome.notifications) {
 const logBase = (item) => ({ problemId: item.problemId, lang: item.lcLang, source: item.source,
   title: item.map.title, num: item.map.num, slug: item.map.slug });
 
-async function notifyNeetCode(text, level, url) {
-  const tabs = await chrome.tabs.query({ url: 'https://neetcode.io/*' });
+// Toast on every open neetcode.io and leetcode.com tab, whichever site the user is looking at.
+async function notifySites(text, level, url) {
+  const tabs = await chrome.tabs.query({ url: ['https://neetcode.io/*', 'https://leetcode.com/*'] });
   await Promise.all(tabs.map((t) => chrome.tabs.sendMessage(t.id, { type: 'N2L_RESULT', text, level, url }).catch(() => {})));
 }
 

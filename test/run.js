@@ -63,7 +63,7 @@ global.chrome = {
   alarms: { create: async () => {}, onAlarm: { addListener: (fn) => listeners.alarm.push(fn) } },
   notifications: { create: async (id, opts) => { notifications.push({ id, ...opts }); return id; }, clear: async () => {}, onClicked: { addListener: () => {} } },
   tabs: {
-    query: async ({ url }) => tabs.filter((t) => t.url.startsWith(url.replace('*', ''))),
+    query: async ({ url }) => { const pats = [].concat(url).map((u) => u.replace('*', '')); return tabs.filter((t) => pats.some((p) => t.url.startsWith(p))); },
     get: async (id) => tabs.find((t) => t.id === id),
     create: async ({ url }) => { const t = { id: 50 + tabs.length, url, status: 'complete', discarded: false }; tabs.push(t); return t; },
     reload: async () => {},
@@ -241,6 +241,7 @@ const settle = () => new Promise((r) => realSetTimeout(r, 150));
   assert.strictEqual(st.log[0].direction, 'lc2nc');
   assert.ok(/ticked in Arrays & Hashing/.test(st.log[0].detail) && /renamed containsDuplicate -> hasDuplicate/.test(st.log[0].detail), st.log[0].detail);
   assert.ok(sentToTabs.some((s) => s.id === 7 && s.msg.type === 'N2L_RESULT' && /NeetCode Contains Duplicate: Accepted/.test(s.msg.text)), 'toast on the leetcode tab');
+  assert.ok(sentToTabs.some((s) => s.id === 9 && s.msg.type === 'N2L_RESULT' && /NeetCode Contains Duplicate: Accepted/.test(s.msg.text)), 'toast on the neetcode tab too');
 
   // 14. JS: LeetCode plain function gets a class Solution wrapper for NeetCode
   sentToTabs.length = 0;
