@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "neet2leet",
   "version": "0.1.0",
-  "description": "Solve on NeetCode, get the accepted solution auto-submitted to LeetCode.",
+  "description": "Two-way sync between NeetCode and LeetCode: accepted solutions are submitted to the other site, the NeetCode roadmap gets ticked.",
   "minimum_chrome_version": "116",
   "permissions": [
     "storage",
@@ -36,6 +36,25 @@
       ],
       "js": [
         "src/neetcode-content.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/*"
+      ],
+      "js": [
+        "src/leetcode-hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://leetcode.com/*"
+      ],
+      "js": [
+        "src/leetcode-content.js"
       ],
       "run_at": "document_start"
     }

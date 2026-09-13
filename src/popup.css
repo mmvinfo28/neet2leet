@@ -40,6 +40,9 @@ section, details { border-top: 1px solid var(--line); padding: 10px 0; }
 
 button { font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--fg); padding: 5px 10px; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary.alt { background: transparent; color: var(--accent); }
+.bulk .row:first-child { flex-wrap: wrap; }
+details select { font: inherit; margin-left: 6px; }
 button.link { border: none; padding: 0 4px; color: var(--accent); background: none; margin-left: auto; }
 button:disabled { opacity: .5; cursor: default; }
 

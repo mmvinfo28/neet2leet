@@ -8,7 +8,7 @@
 <body>
   <header>
     <div class="brand">neet<span>2</span>leet</div>
-    <label class="switch" title="Auto-submit accepted NeetCode solutions to LeetCode">
+    <label class="switch" title="NeetCode → LeetCode: auto-submit accepted NeetCode solutions to LeetCode">
       <input type="checkbox" id="enabled">
       <span class="slider"></span>
     </label>
@@ -34,20 +34,28 @@
 
   <section class="bulk">
     <div class="row">
-      <button id="bulk" class="primary">Sync all accepted from NeetCode</button>
+      <button id="bulk" class="primary">NeetCode → LeetCode: sync all</button>
+      <button id="bulkReverse" class="primary alt">LeetCode → NeetCode: sync all</button>
       <button id="abortBulk" hidden>Stop</button>
     </div>
     <div class="row small">
-      <label><input type="checkbox" id="dryRun" checked> dry run: collect only, submit nothing</label>
+      <label><input type="checkbox" id="dryRun" checked> dry run: collect only, change nothing</label>
     </div>
     <div class="row small">
-      <label><input type="checkbox" id="scanAll"> scan all problems (slow, only if the list is empty)</label>
+      <label><input type="checkbox" id="scanAll"> scan all problems (slow, only if the NeetCode list is empty)</label>
     </div>
     <div id="bulkText" class="small muted"></div>
   </section>
 
   <details class="settings">
     <summary>Settings</summary>
+    <label>LeetCode → NeetCode
+      <select id="lc2nc">
+        <option value="off">off</option>
+        <option value="mark">tick the roadmap</option>
+        <option value="submit">submit code to NeetCode + tick</option>
+      </select>
+    </label>
     <label><input type="checkbox" id="allowPremium"> Submit to LeetCode Premium problems (needs LC Premium)</label>
     <label><input type="checkbox" id="bulkSkipAcceptedOnLeetCode"> Bulk: skip problems already accepted on LeetCode</label>
     <label><input type="checkbox" id="resubmitIdentical"> Resubmit code that was already accepted before</label>

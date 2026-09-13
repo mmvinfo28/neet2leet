@@ -1,7 +1,7 @@
 // Unit tests for src/sigfix.js against real NeetCode / LeetCode starter snippets.
 //   node test/sigfix.js
 import assert from 'node:assert';
-import { extractIdents, computeFix, applyFix, guessFix } from '../src/sigfix.js';
+import { extractIdents, computeFix, applyFix, guessFix, reverseFix, guessReverseFix } from '../src/sigfix.js';
 
 const L = (...lines) => lines.join('\n') + '\n';
 
@@ -93,5 +93,34 @@ assert.strictEqual(guessFix(userPy, 'python3'), null);
 
 // --- extractIdents ignores comments
 assert.deepStrictEqual(extractIdents(L('// class Fake', 'class Real {', '    /* fake(x) */', '    real(x) {}', '}'), 'javascript'), [{ kind: 'class', name: 'Real' }, { kind: 'fn', name: 'real' }]);
+
+// --- reverse direction (LeetCode -> NeetCode)
+assert.deepStrictEqual(reverseFix({ r: [['hasDuplicate', 'containsDuplicate']], w: ['containsDuplicate'] }),
+  { r: [['containsDuplicate', 'hasDuplicate']], u: ['hasDuplicate'] });
+assert.deepStrictEqual(reverseFix({ w: ['serialize', 'deserialize'], c: 'Codec' }), { u: ['serialize', 'deserialize'], c: 'Codec' });
+assert.deepStrictEqual(reverseFix({ r: [['PrefixTree', 'Trie']] }), { r: [['Trie', 'PrefixTree']] });
+assert.strictEqual(reverseFix(null), null);
+
+// computeFix detects the LeetCode-plain-function -> NeetCode-class shape directly too
+assert.deepStrictEqual(computeFix(lcJs, ncJs, 'javascript'), { r: [['containsDuplicate', 'hasDuplicate']], u: ['hasDuplicate'] });
+assert.deepStrictEqual(computeFix(lcTs, ncTs, 'typescript'), { u: ['twoSum'] });
+
+// applying the reverse fix to real LeetCode code
+const lcUser = L('/**', ' * @param {number[]} nums', ' * @return {boolean}', ' */', 'var containsDuplicate = function(nums) {', '    return new Set(nums).size !== nums.length;', '};');
+const rev = applyFix(lcUser, 'javascript', reverseFix({ r: [['hasDuplicate', 'containsDuplicate']], w: ['containsDuplicate'] }));
+assert.ok(rev.code.includes('var hasDuplicate = function(nums)'), rev.code);
+assert.ok(rev.code.includes('class Solution {') && rev.code.includes('    hasDuplicate(...args) { return hasDuplicate(...args); }'), rev.code);
+assert.deepStrictEqual(rev.notes, ['renamed containsDuplicate -> hasDuplicate', 'added javascript class wrapper for hasDuplicate']);
+const revTs = applyFix(L('function twoSum(nums: number[], target: number): number[] {', '    return [0, 1];', '};'), 'typescript', { u: ['twoSum'] });
+assert.ok(revTs.code.includes('    twoSum(...args: any[]): any { return twoSum(...args); }'), revTs.code);
+// already class-shaped code is left alone
+const untouched = applyFix(L('class Solution {', '    twoSum(nums, target) { return [0, 1]; }', '}'), 'javascript', { u: ['twoSum'] });
+assert.deepStrictEqual(untouched.notes, []);
+
+// guessReverseFix: top-level functions -> class Solution wrapper
+assert.deepStrictEqual(guessReverseFix(lcUser, 'javascript'), { u: ['containsDuplicate'] });
+assert.deepStrictEqual(guessReverseFix(L('function twoSum(a, b) {}', 'const helper = (x) => x;'), 'javascript'), { u: ['twoSum', 'helper'] });
+assert.strictEqual(guessReverseFix(L('class Solution {', '    twoSum() {}', '}'), 'javascript'), null);
+assert.strictEqual(guessReverseFix('def f(): pass', 'python3'), null);
 
 console.log('all sigfix tests passed');

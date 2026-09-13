@@ -1,11 +1,16 @@
 # neet2leet
 
-Solve a problem on [NeetCode](https://neetcode.io), get it **Accepted**, and the same solution is submitted to the matching problem on [LeetCode](https://leetcode.com) automatically. Also backfills everything you already solved on NeetCode.
+Two-way sync between [NeetCode](https://neetcode.io) and [LeetCode](https://leetcode.com), as a Chrome extension:
+
+- **NeetCode → LeetCode** — get a problem *Accepted* on NeetCode and the same solution is submitted to the matching LeetCode problem; the LeetCode verdict shows up on the NeetCode page.
+- **LeetCode → NeetCode** — get a problem *Accepted* on LeetCode and it is ticked in your NeetCode roadmap (NeetCode 150 / 250 / Blind 75); optionally the code is also submitted to NeetCode's judge so it appears in your NeetCode submission history.
+- **Backfill** in both directions for everything you already solved.
 
 No GitHub, no API keys, no copying cookies. The extension runs inside your browser and uses the sessions you are already logged in with on both sites.
 
 ```
-NeetCode (Accepted) ──► neet2leet ──► LeetCode submit ──► verdict shown on the NeetCode page
+NeetCode (Accepted) ──► neet2leet ──► LeetCode submit ──► verdict toast on NeetCode
+LeetCode (Accepted) ──► neet2leet ──► NeetCode tick (+ judge) ──► toast on LeetCode
 ```
 
 ## Install (unpacked)
@@ -17,21 +22,36 @@ NeetCode (Accepted) ──► neet2leet ──► LeetCode submit ──► verd
 
 Works on Chrome, Edge, Brave and other Chromium browsers (Manifest V3, Chrome 116+).
 
+## Directions and settings
+
+| Setting | Effect |
+|---|---|
+| Toggle in the header | NeetCode → LeetCode live sync on/off. |
+| **LeetCode → NeetCode** | `off` · `tick the roadmap` (default) · `submit code to NeetCode + tick`. |
+| Submit to LeetCode Premium problems | 161 of the 588 mapped problems are Premium on LeetCode; off by default. |
+| Bulk: skip problems already accepted on LeetCode | Backfill NeetCode → LeetCode leaves green problems alone. |
+| Resubmit code that was already accepted before | Off: identical code is not sent twice. |
+| Desktop notification | Windows/macOS notification with every verdict; click it to open the submission. |
+| Gap between submissions | Minimum seconds between two submissions (any direction); 30 by default, 10 minimum. |
+
 ## Backfill (bulk sync)
 
-Click the extension icon → **Sync all accepted from NeetCode**. Leave **dry run** ticked the first time: it collects everything and lists in *Recent* what *would* be submitted, without touching LeetCode. Untick it and run again to submit for real.
+Click the extension icon. Leave **dry run** ticked the first time: it collects everything and lists in *Recent* what *would* happen, without touching either site. Untick it and run again for real.
 
-The extension reads your completed problems on NeetCode, takes the latest accepted submission of each one and queues them for LeetCode. By default problems that are already accepted on LeetCode are skipped. Submissions are spaced out (30 s by default) to stay well within LeetCode's rate limits, so 150 problems take roughly 75 minutes; keep the browser open.
+- **NeetCode → LeetCode: sync all** — reads your completed problems on NeetCode, takes the latest accepted submission of each and queues them for LeetCode (problems already accepted on LeetCode are skipped by default).
+- **LeetCode → NeetCode: sync all** — every problem accepted on LeetCode that exists on NeetCode and is not ticked there yet gets ticked; with the `submit code` level the latest accepted LeetCode submission is fetched and run through NeetCode's judge as well.
+
+Submissions are spaced out (30 s by default) to stay well within both sites' rate limits, so 150 problems take roughly 75 minutes; keep the browser open. Ticks alone are quick.
 
 ## How it works
 
 | Step | Where | What |
 |---|---|---|
-| Detect | `src/neetcode-hook.js` (page world) | Wraps `XMLHttpRequest`/`fetch` on neetcode.io and watches NeetCode's own submit call (`/api/executeCodeFunctionHttp`). Grabs `problemId`, `lang`, `rawCode` and the verdict. |
-| Relay | `src/neetcode-content.js` | Forwards accepted submissions to the service worker, shows toasts, runs the bulk collection using your NeetCode session. |
-| Map | `data/mapping.json` | NeetCode slug → LeetCode slug / number / internal `question_id` / premium flag. 588 problems. Unknown slugs are resolved live (NeetCode title → LeetCode title, YouTube video title as fallback) and cached. |
-| Adapt | `src/sigfix.js` | Rewrites the few names that differ between the sites (`hasDuplicate` -> `containsDuplicate`, `PrefixTree` -> `Trie`, ...) and, for JavaScript/TypeScript, appends top-level function shims because LeetCode calls plain functions while NeetCode uses `class Solution`. Fixes are precomputed for every problem/language pair in the mapping and computed live (NeetCode starter vs LeetCode snippet) for the rest. |
-| Submit | `src/background.js` | Keeps a persistent queue, opens (or reuses) a background `leetcode.com` tab and runs the submit + verdict polling *inside that tab*, so requests carry your LeetCode cookies and a `leetcode.com` origin. |
+| Detect | `src/neetcode-hook.js`, `src/leetcode-hook.js` (page world) | Wrap `XMLHttpRequest`/`fetch` on each site and watch the site's own submit call (`/api/executeCodeFunctionHttp` on NeetCode, `/problems/<slug>/submit/` + `/submissions/detail/<id>/check/` on LeetCode). Grab problem, language, code and verdict. Only page-initiated requests are seen, so the two directions cannot trigger each other. |
+| Relay | `src/neetcode-content.js`, `src/leetcode-content.js` | Forward accepted submissions to the service worker, show toasts; the NeetCode one also executes the reverse direction (judge call, roadmap tick) and the bulk collection with your NeetCode session. |
+| Map | `data/mapping.json` | NeetCode slug → LeetCode slug / number / internal `question_id` / premium flag / NeetCode topic. 588 problems, verified against NeetCode's own problem table. Unknown slugs are resolved live (NeetCode title → LeetCode title, YouTube video title as fallback) and cached. |
+| Adapt | `src/sigfix.js` | Rewrites the few names that differ between the sites (`hasDuplicate` ↔ `containsDuplicate`, `PrefixTree` ↔ `Trie`, ...) and, for JavaScript/TypeScript, bridges the shapes: LeetCode calls plain functions, NeetCode calls methods on `class Solution`, so shims/wrappers are appended in whichever direction is needed. Fixes are precomputed for every problem/language pair in the mapping and computed live (NeetCode starter vs LeetCode snippet) for the rest. |
+| Submit | `src/background.js` | Keeps one persistent queue for both directions. NeetCode → LeetCode runs the submit + verdict polling inside a background `leetcode.com` tab (requests carry your LeetCode cookies and a `leetcode.com` origin). LeetCode → NeetCode asks the NeetCode content script to call the judge / tick the roadmap with your Firebase session. |
 
 Nothing leaves your browser except the requests to neetcode.io, leetcode.com and (for unknown problems) youtube.com's oEmbed endpoint.
 
@@ -45,7 +65,10 @@ python tools/build_mapping.py          # add --curl behind corporate proxies
 
 ## Limitations
 
-- **LeetCode Premium problems** (161 of the 588) are skipped unless you enable them in settings and have Premium.
+- **Only the 588 problems that exist on NeetCode** can be synced in either direction; LeetCode → NeetCode silently ignores the other ~3500 LeetCode problems.
+- **LeetCode Premium problems** (161 of the 588) are skipped unless you enable them in settings and have Premium. NeetCode Pro-only problems may reject judge submissions without Pro; the roadmap tick still works.
+- **LeetCode → NeetCode judge submissions** don't trigger NeetCode's own GitHub auto-commit (that runs in NeetCode's UI); use NeetCode's *bulk sync* on its GitHub page afterwards if you want them there.
+- **Python 2, C, Ruby, Scala, Dart** solutions from LeetCode can only tick the roadmap; NeetCode's judge has no such languages.
 - **Different signatures** are patched automatically (renamed methods/classes, JS/TS function shims). When the two starters cannot be aligned the code is sent unchanged and LeetCode's verdict (*Compile Error* / *Runtime Error*) shows up in the log with the reason.
 - **Dates.** Backfilled submissions carry today's date on LeetCode; there is no way to backdate.
 - **Languages.** Python, Java, C++, JavaScript, TypeScript, C#, Go, Kotlin, Swift, Rust, C, Ruby, Scala, Dart. SQL problems are not supported.

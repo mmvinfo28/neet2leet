@@ -20,7 +20,11 @@ const submitted = [];   // args passed to lcSubmitInPage
 const notifications = [];
 let lcLoggedIn = true;
 let verdict = 'Accepted';
+let ncVerdict = 'Accepted';
 let nextSubmissionId = 100;
+
+const LC_PY_CONTAINS = ['class Solution:', '    def containsDuplicate(self, nums: List[int]) -> bool:', '        return len(set(nums)) < len(nums)', ''].join('\n');
+const LC_JS_TWO_SUM = ['var twoSum = function(nums, target) {', '    return [0, 1];', '};', ''].join('\n');
 
 const NC_STARTER = ['class Solution:', '    def newBrand(self, x: int) -> int:', '        '].join('\n');
 const LC_SNIPPET = ['class Solution:', '    def brandNew(self, x: int) -> int:', '        '].join('\n');
@@ -63,7 +67,12 @@ global.chrome = {
     get: async (id) => tabs.find((t) => t.id === id),
     create: async ({ url }) => { const t = { id: 50 + tabs.length, url, status: 'complete', discarded: false }; tabs.push(t); return t; },
     reload: async () => {},
-    sendMessage: async (id, msg) => { sentToTabs.push({ id, msg }); return { ok: true }; },
+    sendMessage: async (id, msg) => {
+      sentToTabs.push({ id, msg });
+      if (msg.type === 'N2L_NC_SUBMIT') return { ok: true, status: ncVerdict, testCases: 5, correct: ncVerdict === 'Accepted' ? 5 : 3 };
+      if (msg.type === 'N2L_NC_COMPLETED') return { ok: true, raw: { 'Arrays & Hashing': ['two-sum/'] } };
+      return { ok: true };
+    },
     onUpdated: { addListener: () => {}, removeListener: () => {} },
   },
   scripting: {
@@ -210,6 +219,63 @@ const settle = () => new Promise((r) => realSetTimeout(r, 150));
   } });
   assert.deepStrictEqual(r.ids.sort(), ['anagram-groups', 'buy-and-sell-crypto', 'duplicate-integer', 'permutation-string', 'three-integer-sum', 'two-integer-sum'].sort(), JSON.stringify(r));
   assert.deepStrictEqual(r.unknown, ['something-unknown']);
+
+  // 13. LeetCode -> NeetCode, level "submit": reverse rename, judge call, roadmap tick
+  await send({ type: 'setSettings', settings: { lc2nc: 'submit' } });
+  await send({ type: 'clearLog' });
+  sentToTabs.length = 0;
+  r = await send({ type: 'N2L_LC_ACCEPTED', source: 'live', slug: 'contains-duplicate', lang: 'python3', code: LC_PY_CONTAINS });
+  assert.strictEqual(r.queued, true, JSON.stringify(r));
+  assert.strictEqual(r.title, '#217 Contains Duplicate');
+  await settle();
+  const ncSubmit = sentToTabs.find((s) => s.msg.type === 'N2L_NC_SUBMIT');
+  assert.ok(ncSubmit && ncSubmit.id === 9, 'judge call must go to the neetcode tab');
+  assert.strictEqual(ncSubmit.msg.problemId, 'duplicate-integer');
+  assert.strictEqual(ncSubmit.msg.lang, 'python');
+  assert.ok(ncSubmit.msg.code.includes('def hasDuplicate(') && !ncSubmit.msg.code.includes('containsDuplicate'), ncSubmit.msg.code);
+  const ncMark = sentToTabs.find((s) => s.msg.type === 'N2L_NC_MARK');
+  assert.deepStrictEqual({ topic: ncMark.msg.topic, link: ncMark.msg.link }, { topic: 'Arrays & Hashing', link: 'contains-duplicate/' });
+  st = await send({ type: 'getState' });
+  assert.strictEqual(st.queueCount, 0);
+  assert.strictEqual(st.log[0].status, 'Accepted');
+  assert.strictEqual(st.log[0].direction, 'lc2nc');
+  assert.ok(/ticked in Arrays & Hashing/.test(st.log[0].detail) && /renamed containsDuplicate -> hasDuplicate/.test(st.log[0].detail), st.log[0].detail);
+  assert.ok(sentToTabs.some((s) => s.id === 7 && s.msg.type === 'N2L_RESULT' && /NeetCode Contains Duplicate: Accepted/.test(s.msg.text)), 'toast on the leetcode tab');
+
+  // 14. JS: LeetCode plain function gets a class Solution wrapper for NeetCode
+  sentToTabs.length = 0;
+  r = await send({ type: 'N2L_LC_ACCEPTED', source: 'live', slug: 'two-sum', lang: 'javascript', code: LC_JS_TWO_SUM });
+  assert.strictEqual(r.queued, true, JSON.stringify(r));
+  await settle();
+  const jsSubmit = sentToTabs.find((s) => s.msg.type === 'N2L_NC_SUBMIT');
+  assert.ok(jsSubmit.msg.code.includes('class Solution {') && jsSubmit.msg.code.includes('twoSum(...args) { return twoSum(...args); }'), jsSubmit.msg.code);
+
+  // 15. level "mark": no judge call, only the tick; not-on-NeetCode problems are silently ignored
+  await send({ type: 'setSettings', settings: { lc2nc: 'mark' } });
+  sentToTabs.length = 0;
+  r = await send({ type: 'N2L_LC_ACCEPTED', source: 'live', slug: 'valid-anagram', lang: 'cpp', code: 'class Solution {};' });
+  assert.strictEqual(r.queued, true, JSON.stringify(r));
+  await settle();
+  assert.ok(!sentToTabs.some((s) => s.msg.type === 'N2L_NC_SUBMIT'));
+  assert.ok(sentToTabs.some((s) => s.msg.type === 'N2L_NC_MARK' && s.msg.link === 'valid-anagram/'));
+  r = await send({ type: 'N2L_LC_ACCEPTED', source: 'live', slug: 'not-on-neetcode-at-all', lang: 'cpp', code: 'x' });
+  assert.strictEqual(r.level, 'silent', JSON.stringify(r));
+
+  // 16. level "off"
+  await send({ type: 'setSettings', settings: { lc2nc: 'off' } });
+  r = await send({ type: 'N2L_LC_ACCEPTED', source: 'live', slug: 'valid-anagram', lang: 'cpp', code: 'y' });
+  assert.strictEqual(r.level, 'silent', JSON.stringify(r));
+
+  // 17. reverse bulk (mark): accepted on LeetCode, not yet ticked on NeetCode -> queued; already ticked -> skipped
+  await send({ type: 'setSettings', settings: { lc2nc: 'mark' } });
+  await send({ type: 'clearLog' });
+  await send({ type: 'startReverseBulk', options: { dryRun: true } });
+  await settle();
+  st = await send({ type: 'getState' });
+  assert.strictEqual(st.bulk.direction, 'lc2nc');
+  assert.strictEqual(st.bulk.phase, 'done');
+  // the fake LeetCode list has only two-sum as 'ac', and NeetCode already has it ticked -> nothing to do
+  assert.strictEqual(st.bulk.found, 0, JSON.stringify(st.bulk));
 
   console.log('all background tests passed');
   process.exit(0);

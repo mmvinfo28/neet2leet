@@ -2,7 +2,7 @@
 // LeetCode side (submit + poll, executed inside a leetcode.com tab so the request carries the
 // user's own session cookies and a leetcode.com origin).
 
-import { computeFix, applyFix, guessFix } from './sigfix.js';
+import { computeFix, applyFix, guessFix, reverseFix, guessReverseFix } from './sigfix.js';
 
 const ALARM = 'n2l-tick';
 const LOG_LIMIT = 1000;
@@ -22,7 +22,8 @@ const DEFAULT_SETTINGS = {
   bulkSkipAcceptedOnLeetCode: true, // bulk: skip problems already accepted on LeetCode
   resubmitIdentical: false,         // resubmit code that was already accepted on LeetCode by this extension
   delaySec: 30,                     // minimum gap between two LeetCode submissions
-  notify: true,                     // desktop notification with the LeetCode verdict
+  notify: true,                     // desktop notification with the verdict
+  lc2nc: 'mark',                    // LeetCode -> NeetCode: 'off' | 'mark' (tick the roadmap) | 'submit' (judge + tick)
 };
 
 let processing = false;
@@ -79,7 +80,17 @@ async function loadBuiltinMapping() {
 }
 
 function entryFromCompact(problemId, c) {
-  return { problemId, slug: c.s, num: c.n, questionId: c.q, premium: !!c.p, title: c.t, fixes: c.f || null };
+  return { problemId, slug: c.s, num: c.n, questionId: c.q, premium: !!c.p, title: c.t, fixes: c.f || null, topic: c.k || null };
+}
+
+// LeetCode slug -> NeetCode mapping entry (bundled + live-resolved)
+async function resolveByLeetCodeSlug(lcSlug) {
+  const builtin = await loadBuiltinMapping();
+  const { mappingExtra = {} } = await getLocal('mappingExtra');
+  for (const [nc, c] of Object.entries({ ...mappingExtra, ...builtin })) {
+    if (c.s === lcSlug) return entryFromCompact(nc, c);
+  }
+  return null;
 }
 
 // NeetCode's getCompletedProblems answers with LeetCode links grouped by list/topic, e.g.
@@ -305,6 +316,49 @@ async function enqueue(raw, source, { dryRun = false } = {}) {
   return { queued: true, title: label };
 }
 
+// LeetCode -> NeetCode. `raw` = {slug, lang (LeetCode slug), code, ...}
+async function enqueueReverse(raw, source, { dryRun = false, level = null } = {}) {
+  const settings = await getSettings();
+  const mode = level || settings.lc2nc;
+  if (!mode || mode === 'off') return { reason: 'LeetCode -> NeetCode sync is off.', level: 'silent' };
+  const lcSlug = String(raw.slug || '');
+  if (!lcSlug || typeof raw.code !== 'string' || !raw.code.trim()) return { reason: 'Empty submission, ignored.', level: 'silent' };
+
+  const map = await resolveByLeetCodeSlug(lcSlug);
+  if (!map) return { reason: `${lcSlug} is not on NeetCode.`, level: 'silent' };
+  const label = `#${map.num} ${map.title}`;
+  const ncLang = LC2NC[String(raw.lang || '').toLowerCase()];
+  if (mode === 'submit' && !ncLang) {
+    await appendLog({ problemId: map.problemId, lang: raw.lang, source, direction: 'lc2nc', status: 'Skipped (language)', title: map.title, num: map.num, slug: map.slug,
+      detail: `NeetCode has no ${raw.lang} judge; only the roadmap tick will be applied.` });
+  }
+
+  const key = `lc2nc|${map.problemId}|${ncLang || 'mark'}|${mode === 'submit' && ncLang ? hashCode(raw.code) : 'mark'}`;
+  const { synced = {} } = await getLocal('synced');
+  if (!settings.resubmitIdentical && synced[key] && synced[key].status === 'Accepted') {
+    return { reason: `${label}: already synced to NeetCode.`, level: 'info', duplicate: true };
+  }
+  if (dryRun) {
+    await appendLog({ problemId: map.problemId, lang: raw.lang, source, direction: 'lc2nc', status: 'Dry run', title: map.title, num: map.num, slug: map.slug,
+      detail: mode === 'submit' && ncLang ? `would submit ${raw.code.length} chars of ${ncLang} to NeetCode and tick ${map.topic || '?'}` : `would tick ${map.topic || '?'} on NeetCode` });
+    return { queued: true, dryRun: true, title: label };
+  }
+
+  const added = await mutateQueue((queue) => {
+    if (queue.some((q) => q.key === key)) return false;
+    queue.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      key, direction: 'lc2nc', mode: mode === 'submit' && ncLang ? 'submit' : 'mark',
+      problemId: map.problemId, source, lcLang: raw.lang, ncLang, code: raw.code, at: raw.at || Date.now(), attempts: 0,
+      map: { slug: map.slug, num: map.num, questionId: map.questionId, title: map.title, premium: map.premium, fixes: map.fixes || null, topic: map.topic },
+    });
+    return true;
+  });
+  if (!added) return { reason: `${label} is already queued.`, level: 'info', duplicate: true };
+  processQueue();
+  return { queued: true, title: label };
+}
+
 async function processQueue() {
   if (processing) return;
   processing = true;
@@ -326,7 +380,7 @@ async function processQueue() {
         break;
       }
 
-      const outcome = await handleItem(item);
+      const outcome = item.direction === 'lc2nc' ? await handleReverseItem(item) : await handleItem(item);
       if (outcome === 'paused') break;
       await mutateQueue((queue) => {
         const idx = queue.findIndex((q) => q.id === item.id);
@@ -422,6 +476,194 @@ async function handleItem(item) {
   await notifyNeetCode(`${label}: ${status}`, ok ? 'ok' : 'error', url);
   await notifyDesktop(ok, label, status, detail, url);
   return 'done';
+}
+
+// LeetCode -> NeetCode: optional judge submission, then tick the roadmap. Returns like handleItem.
+async function handleReverseItem(item) {
+  const { num, title, topic, slug } = item.map;
+  const label = `NeetCode ${title}`;
+  const problemUrl = `https://neetcode.io/problems/${item.problemId}`;
+  let tabId;
+  try {
+    tabId = await getNeetCodeTabId();
+  } catch (err) {
+    await pauseQueue(`Could not open a neetcode.io tab: ${err.message}`);
+    return 'paused';
+  }
+  await setLocal({ lastSubmitAt: Date.now() });
+
+  const parts = [];
+  let status = 'Accepted';
+  if (item.mode === 'submit') {
+    let code = item.code;
+    let notes = [];
+    try {
+      const fix = await resolveReverseFix(item);
+      const applied = applyFix(item.code, item.lcLang, fix);
+      code = applied.code;
+      notes = applied.notes;
+    } catch (err) {
+      console.warn('[neet2leet] reverse signature fix skipped', err);
+    }
+    let r;
+    try {
+      r = await chrome.tabs.sendMessage(tabId, { type: 'N2L_NC_SUBMIT', problemId: item.problemId, lang: item.ncLang, code });
+    } catch (err) {
+      r = { ok: false, error: String((err && err.message) || err) };
+    }
+    if (!r || !r.ok) {
+      const msg = (r && r.error) || 'no response';
+      if (/logged in|session/i.test(msg)) {
+        await pauseQueue('Not logged in on NeetCode. Log in at neetcode.io, then press Resume in the popup.');
+        return 'paused';
+      }
+      if (item.attempts < 2) {
+        item.attempts += 1;
+        item.notBefore = Date.now() + 60_000 * item.attempts;
+        await appendLog({ ...logBaseReverse(item), status: 'Retry scheduled', detail: msg });
+        return 'retry';
+      }
+      status = 'Submit failed';
+      parts.push(msg);
+    } else {
+      status = r.status || 'Unknown';
+      if (r.testCases != null) parts.push(`${r.correct ?? '?'}/${r.testCases} NeetCode test cases`);
+      if (r.error) parts.push(String(r.error).slice(0, 300));
+      parts.push(...notes);
+    }
+  }
+
+  // Tick the roadmap regardless of the judge result (the LeetCode verdict was Accepted).
+  if (topic) {
+    try {
+      const m = await chrome.tabs.sendMessage(tabId, { type: 'N2L_NC_MARK', topic, link: `${slug}/` });
+      parts.push(m && m.ok ? `ticked in ${topic}` : `tick failed: ${(m && m.error) || 'no response'}`);
+    } catch (err) {
+      parts.push(`tick failed: ${String((err && err.message) || err)}`);
+    }
+  } else {
+    parts.push('no topic known, roadmap not ticked');
+  }
+
+  const detail = parts.filter(Boolean).join(' | ');
+  await appendLog({ ...logBaseReverse(item), status, detail, url: problemUrl });
+  const { synced = {} } = await getLocal('synced');
+  synced[item.key] = { status, at: Date.now() };
+  await setLocal({ synced });
+
+  const ok = status === 'Accepted';
+  await notifyLeetCode(`${label}: ${item.mode === 'submit' ? status : 'ticked'}`, ok ? 'ok' : 'error', problemUrl);
+  await notifyDesktop(ok, `${label} (#${num})`, item.mode === 'submit' ? `${status} on NeetCode` : 'Ticked on NeetCode', detail, problemUrl);
+  return 'done';
+}
+
+const logBaseReverse = (item) => ({ problemId: item.problemId, lang: item.ncLang || item.lcLang, source: item.source, direction: 'lc2nc',
+  title: item.map.title, num: item.map.num, slug: item.map.slug });
+
+async function resolveReverseFix(item) {
+  const lang = item.lcLang;
+  const bundled = item.map.fixes && item.map.fixes[lang];
+  if (bundled) return reverseFix(bundled);
+  const { fixExtra = {} } = await getLocal('fixExtra');
+  const cached = fixExtra[item.problemId] && fixExtra[item.problemId][lang];
+  if (cached !== undefined) return reverseFix(cached);
+  try {
+    const [ncStarter, lcSnippet] = await Promise.all([fetchNeetCodeStarter(item.problemId, item.ncLang), fetchLeetCodeSnippet(item.map.slug, lang)]);
+    let fix = computeFix(ncStarter, lcSnippet, lang);
+    if (fix && !fix.r && !fix.w && !fix.u) fix = null;
+    if (ncStarter && lcSnippet) {
+      fixExtra[item.problemId] = { ...(fixExtra[item.problemId] || {}), [lang]: fix };
+      await setLocal({ fixExtra });
+      return reverseFix(fix);
+    }
+  } catch (err) {
+    console.warn('[neet2leet] live reverse signature check failed', err);
+  }
+  return guessReverseFix(item.code, lang);
+}
+
+async function notifyLeetCode(text, level, url) {
+  const tabs = await chrome.tabs.query({ url: 'https://leetcode.com/*' });
+  await Promise.all(tabs.map((t) => chrome.tabs.sendMessage(t.id, { type: 'N2L_RESULT', text, level, url }).catch(() => {})));
+}
+
+async function getNeetCodeTabId() {
+  const tabs = await chrome.tabs.query({ url: 'https://neetcode.io/*' });
+  let tab = tabs.find((t) => t.status === 'complete' && !t.discarded) || tabs[0];
+  if (!tab) {
+    tab = await chrome.tabs.create({ url: 'https://neetcode.io/practice', active: false });
+    await waitTabComplete(tab.id);
+    await sleep(3000);
+  } else if (tab.discarded || tab.status !== 'complete') {
+    if (tab.discarded) await chrome.tabs.reload(tab.id);
+    await waitTabComplete(tab.id);
+    await sleep(2000);
+  }
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: 'N2L_PING' });
+  } catch {
+    await chrome.tabs.reload(tab.id);
+    await waitTabComplete(tab.id);
+    await sleep(3000);
+    await chrome.tabs.sendMessage(tab.id, { type: 'N2L_PING' });
+  }
+  return tab.id;
+}
+
+// Reverse bulk: every problem accepted on LeetCode that exists on NeetCode and is not ticked there yet.
+let reverseAbort = false;
+async function startReverseBulk(options = {}) {
+  reverseAbort = false;
+  await setLocal({ bulk: { running: true, phase: 'starting', direction: 'lc2nc', done: 0, total: 0, found: 0, queued: 0,
+    dryRun: !!options.dryRun, startedAt: Date.now(), error: null } });
+  try {
+    const idx = await getLcIndex(true);
+    if (!idx.userName) throw new Error('Not logged in on LeetCode.');
+    const accepted = Object.values(idx.bySlug).filter((e) => e.status === 'ac');
+    await setLocal({ bulk: { ...(await getLocal('bulk')).bulk, phase: 'collecting', updatedAt: Date.now(), total: accepted.length } });
+
+    // what is already ticked on NeetCode
+    let done = new Set();
+    try {
+      const tabId = await getNeetCodeTabId();
+      const c = await chrome.tabs.sendMessage(tabId, { type: 'N2L_NC_COMPLETED' });
+      if (c && c.ok) done = new Set((await completedToIds(c.raw)).ids);
+    } catch (err) {
+      console.warn('[neet2leet] could not read NeetCode progress', err);
+    }
+
+    const settings = await getSettings();
+    const mode = options.level || (settings.lc2nc === 'off' ? 'mark' : settings.lc2nc);
+    let found = 0;
+    let n = 0;
+    for (const e of accepted) {
+      if (reverseAbort) break;
+      n += 1;
+      const map = await resolveByLeetCodeSlug(e.slug);
+      if (!map || done.has(map.problemId)) continue;
+      found += 1;
+      let code = null;
+      let lang = 'python3';
+      if (mode === 'submit') {
+        try {
+          const tabId = await getLeetCodeTabId();
+          const r = await runInTab(tabId, lcLastAcceptedInPage, { slug: e.slug });
+          if (r && r.ok && r.code) { code = r.code; lang = r.lang; }
+        } catch (err) {
+          console.warn('[neet2leet] could not fetch accepted code for', e.slug, err);
+        }
+      }
+      await enqueueReverse({ slug: e.slug, lang, code: code || '# accepted on LeetCode', at: Date.now() }, 'bulk',
+        { dryRun: !!options.dryRun, level: code ? 'submit' : 'mark' });
+      const { bulk = {} } = await getLocal('bulk');
+      await setLocal({ bulk: { ...bulk, done: n, found, queued: found, updatedAt: Date.now() } });
+    }
+    const { bulk = {} } = await getLocal('bulk');
+    await setLocal({ bulk: { ...bulk, running: false, phase: reverseAbort ? 'aborted' : 'done', done: n, found } });
+  } catch (err) {
+    const { bulk = {} } = await getLocal('bulk');
+    await setLocal({ bulk: { ...bulk, running: false, phase: 'error', error: String((err && err.message) || err) } });
+  }
 }
 
 const notificationUrls = new Map();
@@ -568,6 +810,30 @@ function lcSnippetInPage(p) {
   })();
 }
 
+function lcLastAcceptedInPage(p) {
+  return (async () => {
+    const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    const headers = { 'content-type': 'application/json', 'x-csrftoken': (m && m[1]) || '' };
+    const gql = async (query, variables) => {
+      const r = await fetch('https://leetcode.com/graphql', { method: 'POST', credentials: 'include', headers, body: JSON.stringify({ query, variables }) });
+      return r.json();
+    };
+    try {
+      const list = await gql('query l($s: String!, $o: Int!, $n: Int!) { questionSubmissionList(questionSlug: $s, offset: $o, limit: $n) { submissions { id statusDisplay lang } } }',
+        { s: p.slug, o: 0, n: 20 });
+      const subs = (list && list.data && list.data.questionSubmissionList && list.data.questionSubmissionList.submissions) || [];
+      const acc = subs.find((x) => x.statusDisplay === 'Accepted');
+      if (!acc) return { ok: false, error: 'no accepted submission' };
+      const det = await gql('query d($id: Int!) { submissionDetails(submissionId: $id) { code lang { name } } }', { id: Number(acc.id) });
+      const d = det && det.data && det.data.submissionDetails;
+      if (!d || !d.code) return { ok: false, error: 'no code' };
+      return { ok: true, code: d.code, lang: (d.lang && d.lang.name) || acc.lang, submissionId: acc.id };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  })();
+}
+
 function lcCheckInPage(p) {
   return (async () => {
     const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
@@ -627,6 +893,7 @@ async function startBulk(options = {}) {
 }
 
 async function abortBulk() {
+  reverseAbort = true;
   const tabs = await chrome.tabs.query({ url: 'https://neetcode.io/*' });
   await Promise.all(tabs.map((t) => chrome.tabs.sendMessage(t.id, { type: 'N2L_BULK_ABORT' }).catch(() => {})));
   const { bulk = {} } = await getLocal('bulk');
@@ -642,6 +909,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const settings = await getSettings();
         if (!settings.enabled) return { reason: 'neet2leet is paused (enable it in the popup).', level: 'info' };
         return enqueue(msg, 'live');
+      }
+      case 'N2L_LC_ACCEPTED':
+        return enqueueReverse(msg, 'live');
+      case 'startReverseBulk': {
+        startReverseBulk(msg.options || {});
+        return { ok: true };
       }
       case 'N2L_ENQUEUE': {
         const { bulk: before = {} } = await getLocal('bulk');
@@ -676,12 +949,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           await setLocal({ bulk: st.bulk });
         }
         return { settings: await getSettings(), queueCount: (st.queue || []).length,
-          queueHead: (st.queue || []).slice(0, 5).map((q) => ({ num: q.map.num, title: q.map.title, source: q.source })),
+          queueHead: (st.queue || []).slice(0, 5).map((q) => ({ num: q.map.num, title: q.map.title, source: q.source, direction: q.direction || 'nc2lc' })),
           paused: st.paused || null, log: (st.log || []).slice(0, 300), bulk: st.bulk || null };
       }
       case 'setSettings': {
         const merged = { ...(await getSettings()), ...(msg.settings || {}) };
         merged.delaySec = Math.max(10, Number(merged.delaySec) || 30);
+        if (!['off', 'mark', 'submit'].includes(merged.lc2nc)) merged.lc2nc = 'mark';
         await setLocal({ settings: merged });
         return { settings: merged };
       }

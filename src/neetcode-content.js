@@ -70,6 +70,40 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return false;
   }
 
+  // LeetCode -> NeetCode: run the code through NeetCode's judge (same call the Submit button makes)
+  if (msg.type === 'N2L_NC_SUBMIT') {
+    (async () => {
+      const headers = await getApiHeaders();
+      const res = await callNeetCode('executeCodeFunctionHttp', { problemId: msg.problemId, rawCode: msg.code, lang: msg.lang }, headers);
+      const status = (res && res.status && res.status.description) || 'Unknown';
+      return {
+        ok: true, status,
+        testCases: res && res.test_case_count, correct: res && res.correct_test_case_count,
+        error: (res && (res.compile_output || res.stderr)) || null,
+      };
+    })().then(sendResponse, (err) => sendResponse({ ok: false, error: String((err && err.message) || err) }));
+    return true;
+  }
+
+  // LeetCode -> NeetCode: tick the problem in the NeetCode roadmap
+  if (msg.type === 'N2L_NC_MARK') {
+    (async () => {
+      const headers = await getApiHeaders();
+      await callNeetCode('callableFunctionHttp', { functionId: 'markProblemComplete', topic: msg.topic, problem: msg.link }, headers);
+      return { ok: true };
+    })().then(sendResponse, (err) => sendResponse({ ok: false, error: String((err && err.message) || err) }));
+    return true;
+  }
+
+  // Raw completed-problems structure (LeetCode links grouped by topic), for the reverse bulk sync
+  if (msg.type === 'N2L_NC_COMPLETED') {
+    (async () => {
+      const headers = await getApiHeaders();
+      return { ok: true, raw: await callNeetCode('callableFunctionHttp', { functionId: 'getCompletedProblems' }, headers) };
+    })().then(sendResponse, (err) => sendResponse({ ok: false, error: String((err && err.message) || err) }));
+    return true;
+  }
+
   if (msg.type === 'N2L_GET_STARTER') {
     (async () => {
       const headers = await getApiHeaders().catch(() => ({}));
