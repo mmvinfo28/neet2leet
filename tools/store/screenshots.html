@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>neetbridge store screenshots</title>
+<style>
+  body { margin: 0; padding: 24px; background: #222; color: #ddd; font: 14px system-ui, sans-serif; }
+  .controls { margin-bottom: 16px; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: #326be8; color: #fff; cursor: pointer; }
+  #out { white-space: pre; }
+
+  /* ---- frames: exact Chrome Web Store sizes ---- */
+  .frame { position: relative; overflow: hidden; margin-bottom: 24px; color: #eef1f7;
+    background: radial-gradient(1200px 600px at 20% 0%, #1d2b52 0%, #0f1420 55%, #0b0f18 100%); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .shot { width: 1280px; height: 800px; }
+  .tile { width: 440px; height: 280px; }
+  .marquee { width: 1400px; height: 560px; }
+
+  .hero { position: absolute; left: 72px; top: 96px; width: 620px; }
+  .hero .logo { display: flex; align-items: center; gap: 16px; margin-bottom: 36px; }
+  .hero .logo img { width: 64px; height: 64px; border-radius: 14px; }
+  .hero .logo span { font-size: 34px; font-weight: 800; letter-spacing: -.5px; }
+  .hero .logo b { color: #6b9cff; }
+  .hero h1 { font-size: 44px; line-height: 1.1; margin: 0 0 24px; font-weight: 800; letter-spacing: -.8px; }
+  .hero h1 em { font-style: normal; color: #6b9cff; }
+  .hero ul { list-style: none; padding: 0; margin: 0; font-size: 20px; line-height: 1.5; color: #c7cede; }
+  .hero li { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .hero li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #6b9cff; margin-top: 10px; flex: none; }
+  .popup-wrap { position: absolute; right: 72px; top: 96px; border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); overflow: hidden; }
+
+  .grid { position: absolute; inset: 88px 72px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; align-content: start; }
+  .grid h1 { grid-column: 1 / -1; font-size: 40px; margin: 0 0 8px; font-weight: 800; letter-spacing: -.6px; }
+  .grid h1 em { font-style: normal; color: #6b9cff; }
+  .card { background: rgba(23, 29, 43, .9); border: 1px solid #2a3346; border-radius: 16px; padding: 26px; min-height: 250px; }
+  .card .k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #6b9cff; font-weight: 700; margin-bottom: 12px; }
+  .card h2 { font-size: 24px; margin: 0 0 12px; font-weight: 700; }
+  .card p { margin: 0; font-size: 17px; line-height: 1.5; color: #c7cede; }
+  .flow { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 22px; font-size: 22px; font-weight: 700; margin-top: 12px; }
+  .flow .site { padding: 10px 18px; border-radius: 12px; }
+  .flow .nc { background: #0ea5e9; } .flow .lc { background: #f59e0b; color: #111; }
+  .flow .arr { color: #6b9cff; font-size: 30px; }
+
+  .tile .t { position: absolute; inset: 0; display: flex; align-items: center; gap: 20px; padding: 0 36px; }
+  .tile img { width: 120px; height: 120px; border-radius: 26px; }
+  .tile .n { font-size: 36px; font-weight: 800; letter-spacing: -.5px; }
+  .tile .n b { color: #6b9cff; }
+  .tile .s { font-size: 16px; color: #c7cede; margin-top: 6px; line-height: 1.35; }
+
+  .marquee .m { position: absolute; inset: 0; display: flex; align-items: center; gap: 48px; padding: 0 96px; }
+  .marquee img { width: 220px; height: 220px; border-radius: 48px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .marquee .n { font-size: 64px; font-weight: 800; letter-spacing: -1px; }
+  .marquee .n b { color: #6b9cff; }
+  .marquee .s { font-size: 28px; color: #c7cede; margin-top: 10px; line-height: 1.35; max-width: 820px; }
+</style>
+</head>
+<body>
+<div class="controls">
+  <button id="save">Render + save to assets/store/</button>
+  <span id="out"></span>
+</div>
+
+<!-- 1. hero: 1280x800 -->
+<div class="frame shot" id="shot1">
+  <div class="hero">
+    <div class="logo"><img src="../../assets/icon256.png" alt=""><span>neet<b>bridge</b></span></div>
+    <h1>Solve on <em>NeetCode</em> or <em>LeetCode</em>.<br>Both stay in sync.</h1>
+    <ul>
+      <li>Accepted on NeetCode → the same code is submitted to LeetCode</li>
+      <li>Accepted on LeetCode → ticked in your NeetCode roadmap, optionally submitted too</li>
+      <li>Backfill everything you already solved, with a preview first</li>
+      <li>Runs in your browser with the sessions you already have. No accounts, no keys.</li>
+    </ul>
+  </div>
+  <div class="popup-wrap"><div class="popup" id="popup-host"></div></div>
+</div>
+
+<!-- 2. how it works: 1280x800 -->
+<div class="frame shot" id="shot2">
+  <div class="grid">
+    <h1>How <em>neetbridge</em> works</h1>
+    <div class="card"><div class="k">Detect</div><h2>Your own Submit button</h2><p>The extension watches the site's own submission call and picks up the code, the language and the verdict. Nothing to copy, nothing to configure.</p></div>
+    <div class="card"><div class="k">Translate</div><h2>588 problems mapped</h2><p>NeetCode renames problems and methods (two-integer-sum → two-sum, hasDuplicate → containsDuplicate). The mapping and signature fixes are built in and verified against both sites.</p></div>
+    <div class="card"><div class="k">Deliver</div><h2>Verdict where you are</h2><p>Submitted with your own session, spaced out to respect rate limits. The result shows up as a toast on the page and as a desktop notification.</p></div>
+    <div class="flow"><span class="site nc">NeetCode</span><span class="arr">⇄</span><span class="site lc">LeetCode</span></div>
+  </div>
+</div>
+
+<!-- 3. small promo tile: 440x280 -->
+<div class="frame tile" id="tile">
+  <div class="t"><img src="../../assets/icon256.png" alt=""><div><div class="n">neet<b>bridge</b></div><div class="s">Two-way sync between NeetCode and LeetCode</div></div></div>
+</div>
+
+<!-- 4. marquee: 1400x560 -->
+<div class="frame marquee" id="marquee">
+  <div class="m"><img src="../../assets/icon512.png" alt=""><div><div class="n">neet<b>bridge</b></div><div class="s">Get a problem accepted on NeetCode or LeetCode - the other site follows: code submitted, roadmap ticked.</div></div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// Stubbed extension API so the real popup renders with sample data.
+const LOG = [
+  { num: 217, title: 'Contains Duplicate', status: 'Accepted', direction: 'nc2lc', detail: '70/70 test cases | runtime 0 ms | renamed hasDuplicate -> containsDuplicate', problemId: 'duplicate-integer', slug: 'contains-duplicate', url: 'https://leetcode.com/submissions/detail/1/' },
+  { num: 1, title: 'Two Sum', status: 'Accepted', direction: 'lc2nc', detail: 'ticked in Arrays & Hashing', problemId: 'two-integer-sum', slug: 'two-sum' },
+  { num: 15, title: '3Sum', status: 'Time Limit Exceeded', direction: 'nc2lc', detail: '312/316 test cases', problemId: 'three-integer-sum', slug: '3sum', url: 'https://leetcode.com/submissions/detail/2/' },
+  { num: 271, title: 'Encode and Decode Strings', status: 'Skipped (premium)', direction: 'nc2lc', problemId: 'string-encode-and-decode', slug: 'encode-and-decode-strings' },
+  { num: 49, title: 'Group Anagrams', status: 'Accepted', direction: 'nc2lc', detail: '129/129 test cases | runtime 15 ms', problemId: 'anagram-groups', slug: 'group-anagrams', url: 'https://leetcode.com/submissions/detail/3/' },
+  { num: 125, title: 'Valid Palindrome', status: 'Accepted', direction: 'lc2nc', detail: 'Accepted on NeetCode | 30/30 NeetCode test cases | ticked in Two Pointers', problemId: 'is-palindrome', slug: 'valid-palindrome' },
+].map((e, i) => ({ ...e, at: Date.now() - i * 900000, source: 'live', lang: 'python3' }));
+window.chrome = {
+  runtime: { sendMessage: async (msg) => {
+    if (msg.type === 'getState') return { settings: { enabled: true, lc2nc: 'mark', allowPremium: false, notify: true, delaySec: 30 },
+      queueCount: 1, queueHead: [{ num: 128, title: 'Longest Consecutive Sequence', source: 'live', direction: 'nc2lc' }], paused: null, bulk: null, log: LOG };
+    if (msg.type === 'checkLeetCode') return { loggedIn: true, userName: 'you', numSolved: 142 };
+    if (msg.type === 'checkNeetCode') return { loggedIn: true };
+    return { ok: true };
+  } },
+  tabs: { create: () => {} },
+  storage: { onChanged: { addListener: () => {} } },
+};
+
+async function mountPopup() {
+  const bust = '?t=' + Date.now();
+  const [html, css] = await Promise.all([fetch('../../src/popup.html' + bust).then((r) => r.text()), fetch('../../src/popup.css' + bust).then((r) => r.text())]);
+  const body = html.slice(html.indexOf('<body>') + 6, html.indexOf('<script'));
+  document.getElementById('popup-host').innerHTML = body.replace(/\.\.\/icons\//g, '../../icons/');
+  const style = document.createElement('style');
+  style.textContent = css.replace('html, body { height: 590px; overflow: hidden; }', '.popup { height: 590px; overflow: hidden; }')
+    .replace(/\nbody \{/, '\n.popup {')
+    // html2canvas knows nothing about <details> or flex/grid stretching: give it a plain block layout of the same size
+    + '\n.popup { display: block; height: auto; } .popup details { display: none; } .popup .log ul { max-height: 262px; overflow: hidden; } .popup .card { min-height: 0; }';
+  document.head.append(style);
+  await new Promise((res) => { const s = document.createElement('script'); s.src = '../../src/popup.js' + bust; s.onload = res; document.body.append(s); });
+  await new Promise((r) => setTimeout(r, 300));
+}
+
+async function render() {
+  const out = document.getElementById('out');
+  out.textContent = 'rendering…';
+  const files = {};
+  for (const [id, name] of [['shot1', 'screenshot-1'], ['shot2', 'screenshot-2'], ['tile', 'promo-small-440x280'], ['marquee', 'promo-marquee-1400x560']]) {
+    const el = document.getElementById(id);
+    const canvas = await html2canvas(el, { scale: 1, useCORS: true, backgroundColor: null, width: el.offsetWidth, height: el.offsetHeight });
+    files[name] = canvas.toDataURL('image/png');
+  }
+  const r = await fetch('/save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(files) });
+  out.textContent = (await r.json()).join('\n');
+}
+
+mountPopup();
+document.getElementById('save').addEventListener('click', render);
+</script>
+</body>
+</html>

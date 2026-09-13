@@ -91,7 +91,7 @@ button.sync:disabled { opacity: .5; cursor: default; filter: none; }
 .dot.ok { background: var(--ok); }
 .dot.warn { background: var(--warn); }
 .dot.err { background: var(--err); }
-.dot.busy { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.dot.busy { background: var(--accent); box-shadow: 0 0 0 3px rgba(79, 131, 241, .25); }
 button.link { font: inherit; font-size: 12px; border: none; padding: 0 4px; color: var(--accent); background: none; margin-left: auto; cursor: pointer; }
 button.link:hover { text-decoration: underline; }
 
