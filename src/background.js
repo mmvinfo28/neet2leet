@@ -5,7 +5,7 @@
 import { computeFix, applyFix, guessFix } from './sigfix.js';
 
 const ALARM = 'n2l-tick';
-const LOG_LIMIT = 200;
+const LOG_LIMIT = 1000;
 const LC_ALL = 'https://leetcode.com/api/problems/all/';
 const NC_META = 'https://neetcode.io/api/getProblemMetadataFunctionHttp';
 
@@ -648,7 +648,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         return { settings: await getSettings(), queueCount: (st.queue || []).length,
           queueHead: (st.queue || []).slice(0, 5).map((q) => ({ num: q.map.num, title: q.map.title, source: q.source })),
-          paused: st.paused || null, log: (st.log || []).slice(0, 40), bulk: st.bulk || null };
+          paused: st.paused || null, log: (st.log || []).slice(0, 300), bulk: st.bulk || null };
       }
       case 'setSettings': {
         const merged = { ...(await getSettings()), ...(msg.settings || {}) };

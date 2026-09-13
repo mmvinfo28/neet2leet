@@ -22,6 +22,8 @@ function fmtTime(ts) {
 function renderLog(log) {
   const ul = $('log');
   ul.textContent = '';
+  const acc = log.filter((e) => e.status === 'Accepted').length;
+  $('logCount').textContent = log.length ? `${log.length} entries · ${acc} accepted` : '';
   if (!log.length) {
     const li = document.createElement('li');
     li.className = 'muted';

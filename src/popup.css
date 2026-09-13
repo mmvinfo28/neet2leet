@@ -18,7 +18,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body {
-  width: 360px; margin: 0; padding: 12px;
+  width: 420px; margin: 0; padding: 12px;
   background: var(--bg); color: var(--fg);
   font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -54,7 +54,7 @@ details summary { cursor: pointer; font-weight: 600; }
 details label { display: block; margin-top: 6px; }
 details input[type="number"] { width: 64px; font: inherit; }
 
-.log ul { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow: auto; }
+.log ul { list-style: none; margin: 6px 0 0; padding: 0; max-height: 420px; overflow: auto; }
 .log li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 5px 0; border-top: 1px dashed var(--line); }
 .log li .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .log li .s { font-size: 11px; padding: 1px 6px; border-radius: 10px; color: #fff; background: var(--idle); white-space: nowrap; }
