@@ -1,7 +1,7 @@
 const $ = (id) => document.getElementById(id);
 const send = (msg) => chrome.runtime.sendMessage(msg);
 
-const SETTING_IDS = ['enabled', 'allowPremium', 'bulkSkipAcceptedOnLeetCode', 'resubmitIdentical', 'delaySec'];
+const SETTING_IDS = ['enabled', 'allowPremium', 'bulkSkipAcceptedOnLeetCode', 'resubmitIdentical', 'notify', 'delaySec'];
 
 // green = accepted, gold = skipped (premium), orange = needs attention, red = any failed verdict/error
 function statusClass(status) {

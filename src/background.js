@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS = {
   bulkSkipAcceptedOnLeetCode: true, // bulk: skip problems already accepted on LeetCode
   resubmitIdentical: false,         // resubmit code that was already accepted on LeetCode by this extension
   delaySec: 30,                     // minimum gap between two LeetCode submissions
+  notify: true,                     // desktop notification with the LeetCode verdict
 };
 
 let processing = false;
@@ -419,7 +420,35 @@ async function handleItem(item) {
 
   const ok = status === 'Accepted';
   await notifyNeetCode(`${label}: ${status}`, ok ? 'ok' : 'error', url);
+  await notifyDesktop(ok, label, status, detail, url);
   return 'done';
+}
+
+const notificationUrls = new Map();
+async function notifyDesktop(ok, label, status, detail, url) {
+  const settings = await getSettings();
+  if (!settings.notify || !chrome.notifications) return;
+  try {
+    const id = `n2l-${Date.now()}`;
+    notificationUrls.set(id, url);
+    await chrome.notifications.create(id, {
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+      title: `${ok ? '✅' : '❌'} ${status} on LeetCode`,
+      message: [label, detail].filter(Boolean).join(' - '),
+      priority: ok ? 0 : 1,
+    });
+  } catch (err) {
+    console.warn('[neet2leet] notification failed', err);
+  }
+}
+
+if (chrome.notifications) {
+  chrome.notifications.onClicked.addListener((id) => {
+    const url = notificationUrls.get(id);
+    if (url) chrome.tabs.create({ url });
+    chrome.notifications.clear(id);
+  });
 }
 
 const logBase = (item) => ({ problemId: item.problemId, lang: item.lcLang, source: item.source,

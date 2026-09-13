@@ -17,6 +17,7 @@ const tabs = [{ id: 7, url: 'https://leetcode.com/problemset/', status: 'complet
 const sentToTabs = [];
 const injected = [];
 const submitted = [];   // args passed to lcSubmitInPage
+const notifications = [];
 let lcLoggedIn = true;
 let verdict = 'Accepted';
 let nextSubmissionId = 100;
@@ -56,6 +57,7 @@ global.chrome = {
     set: async (obj) => { Object.assign(store, structuredClone(obj)); },
   } },
   alarms: { create: async () => {}, onAlarm: { addListener: (fn) => listeners.alarm.push(fn) } },
+  notifications: { create: async (id, opts) => { notifications.push({ id, ...opts }); return id; }, clear: async () => {}, onClicked: { addListener: () => {} } },
   tabs: {
     query: async ({ url }) => tabs.filter((t) => t.url.startsWith(url.replace('*', ''))),
     get: async (id) => tabs.find((t) => t.id === id),
@@ -110,6 +112,8 @@ const settle = () => new Promise((r) => realSetTimeout(r, 150));
   assert.strictEqual(st.log[0].url, 'https://leetcode.com/submissions/detail/100/');
   assert.ok(injected.includes('lcSubmitInPage') && injected.includes('lcCheckInPage'));
   assert.ok(sentToTabs.some((s) => s.id === 9 && s.msg.type === 'N2L_RESULT' && /Accepted/.test(s.msg.text)));
+  assert.strictEqual(notifications.length, 1);
+  assert.ok(/Accepted on LeetCode/.test(notifications[0].title) && /#1 Two Sum/.test(notifications[0].message), JSON.stringify(notifications[0]));
 
   // 2. identical code again -> duplicate, not queued
   r = await send({ type: 'N2L_ACCEPTED', source: 'live', problemId: 'two-integer-sum', lang: 'python', code: 'class Solution: pass' });

@@ -4,7 +4,12 @@
   "version": "0.1.0",
   "description": "Solve on NeetCode, get the accepted solution auto-submitted to LeetCode.",
   "minimum_chrome_version": "116",
-  "permissions": ["storage", "scripting", "alarms"],
+  "permissions": [
+    "storage",
+    "scripting",
+    "alarms",
+    "notifications"
+  ],
   "host_permissions": [
     "https://neetcode.io/*",
     "https://leetcode.com/*",
@@ -16,14 +21,22 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://neetcode.io/*"],
-      "js": ["src/neetcode-hook.js"],
+      "matches": [
+        "https://neetcode.io/*"
+      ],
+      "js": [
+        "src/neetcode-hook.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["https://neetcode.io/*"],
-      "js": ["src/neetcode-content.js"],
+      "matches": [
+        "https://neetcode.io/*"
+      ],
+      "js": [
+        "src/neetcode-content.js"
+      ],
       "run_at": "document_start"
     }
   ],
