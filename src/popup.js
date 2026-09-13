@@ -41,15 +41,19 @@ function renderLog(log) {
     s.className = `s ${statusClass(e.status)}`;
     s.textContent = e.status || '';
     li.append(t, s);
-    if (e.detail || e.url) {
+    const links = [];
+    if (e.problemId) links.push(['NeetCode', `https://neetcode.io/problems/${e.problemId}`]);
+    if (e.url) links.push(['LeetCode submission', e.url]);
+    else if (e.slug) links.push(['LeetCode', `https://leetcode.com/problems/${e.slug}/`]);
+    if (e.detail || links.length) {
       const d = document.createElement('span');
       d.className = 'd';
       d.textContent = e.detail || '';
-      if (e.url) {
+      links.forEach(([text, href], i) => {
         const a = document.createElement('a');
-        a.href = e.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'view on LeetCode';
-        d.append(e.detail ? ' · ' : '', a);
-      }
+        a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = text;
+        d.append(e.detail || i ? ' · ' : '', a);
+      });
       li.append(d);
     }
     ul.append(li);
