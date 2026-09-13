@@ -114,8 +114,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 
   if (msg.type === 'N2L_PING') {
-    sendResponse({ ok: true, hooked: true, hasHeaders: !!capturedHeaders });
-    return false;
+    readFirebaseToken().then((tok) => sendResponse({ ok: true, hooked: true, hasHeaders: !!capturedHeaders, loggedIn: !!tok || !!capturedHeaders }));
+    return true;
   }
   return false;
 });

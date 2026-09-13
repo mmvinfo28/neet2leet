@@ -8,58 +8,55 @@
 <body>
   <header>
     <div class="brand">neet<span>bridge</span></div>
-    <label class="switch" title="NeetCode → LeetCode: auto-submit accepted NeetCode solutions to LeetCode">
-      <input type="checkbox" id="enabled">
-      <span class="slider"></span>
-    </label>
+    <div class="statuses">
+      <span class="pill" id="ncPill" title="NeetCode session"><span class="dot" id="ncDot"></span><span id="ncStatus">NeetCode</span></span>
+      <span class="pill" id="lcPill" title="LeetCode session"><span class="dot" id="lcDot"></span><span id="lcStatus">LeetCode</span></span>
+    </div>
   </header>
 
-  <section class="status">
-    <div class="row">
-      <span class="dot" id="lcDot"></span>
-      <span id="lcStatus">Checking LeetCode login…</span>
-      <button class="link" id="openLc">open</button>
+  <section class="directions">
+    <div class="dir">
+      <span class="arrow">NeetCode → LeetCode</span>
+      <select id="nc2lc">
+        <option value="off">off</option>
+        <option value="submit">submit accepted code</option>
+      </select>
     </div>
+    <div class="dir">
+      <span class="arrow">LeetCode → NeetCode</span>
+      <select id="lc2nc">
+        <option value="off">off</option>
+        <option value="mark">tick the roadmap</option>
+        <option value="submit">tick + submit code</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="bulk">
+    <div class="row">
+      <button id="bulk" class="primary">Sync all →</button>
+      <button id="bulkReverse" class="primary alt">← Sync all</button>
+      <button id="abortBulk" hidden>Stop</button>
+      <label class="small check"><input type="checkbox" id="dryRun" checked> dry run</label>
+      <label class="small check" title="Only if the NeetCode completed list comes back empty: walk every problem instead (slow)"><input type="checkbox" id="scanAll"> scan all</label>
+    </div>
+    <div id="bulkText" class="small muted"></div>
     <div class="row" id="pausedRow" hidden>
       <span class="dot warn"></span>
-      <span id="pausedText"></span>
+      <span id="pausedText" class="small"></span>
       <button class="link" id="resume">Resume</button>
     </div>
-    <div class="row">
+    <div class="row small" id="queueRow">
       <span class="dot idle" id="queueDot"></span>
       <span id="queueText">Queue empty</span>
       <button class="link" id="clearQueue" hidden>clear</button>
     </div>
   </section>
 
-  <section class="bulk">
-    <div class="row">
-      <button id="bulk" class="primary">NeetCode → LeetCode: sync all</button>
-      <button id="bulkReverse" class="primary alt">LeetCode → NeetCode: sync all</button>
-      <button id="abortBulk" hidden>Stop</button>
-    </div>
-    <div class="row small">
-      <label><input type="checkbox" id="dryRun" checked> dry run: collect only, change nothing</label>
-    </div>
-    <div class="row small">
-      <label><input type="checkbox" id="scanAll"> scan all problems (slow, only if the NeetCode list is empty)</label>
-    </div>
-    <div id="bulkText" class="small muted"></div>
-  </section>
-
   <details class="settings">
     <summary>Settings</summary>
-    <label>LeetCode → NeetCode
-      <select id="lc2nc">
-        <option value="off">off</option>
-        <option value="mark">tick the roadmap</option>
-        <option value="submit">submit code to NeetCode + tick</option>
-      </select>
-    </label>
-    <label><input type="checkbox" id="allowPremium"> Submit to LeetCode Premium problems (needs LC Premium)</label>
-    <label><input type="checkbox" id="bulkSkipAcceptedOnLeetCode"> Bulk: skip problems already accepted on LeetCode</label>
-    <label><input type="checkbox" id="resubmitIdentical"> Resubmit code that was already accepted before</label>
-    <label><input type="checkbox" id="notify"> Desktop notification with the LeetCode verdict</label>
+    <label><input type="checkbox" id="allowPremium"> Submit to LeetCode Premium problems (needs Premium)</label>
+    <label><input type="checkbox" id="notify"> Desktop notification with every verdict</label>
     <label>Gap between submissions <input type="number" id="delaySec" min="10" max="600" step="5"> s</label>
   </details>
 

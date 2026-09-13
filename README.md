@@ -24,22 +24,22 @@ Works on Chrome, Edge, Brave and other Chromium browsers (Manifest V3, Chrome 11
 
 ## Directions and settings
 
-| Setting | Effect |
+| Control | Effect |
 |---|---|
-| Toggle in the header | NeetCode → LeetCode live sync on/off. |
-| **LeetCode → NeetCode** | `off` · `tick the roadmap` (default) · `submit code to NeetCode + tick`. |
+| **NeetCode → LeetCode** | `off` · `submit accepted code` (default). |
+| **LeetCode → NeetCode** | `off` · `tick the roadmap` (default) · `tick + submit code`. |
 | Submit to LeetCode Premium problems | 161 of the 588 mapped problems are Premium on LeetCode; off by default. |
-| Bulk: skip problems already accepted on LeetCode | Backfill NeetCode → LeetCode leaves green problems alone. |
-| Resubmit code that was already accepted before | Off: identical code is not sent twice. |
 | Desktop notification | Windows/macOS notification with every verdict; click it to open the submission. |
 | Gap between submissions | Minimum seconds between two submissions (any direction); 30 by default, 10 minimum. |
+
+Identical code is never sent twice, and backfills skip whatever is already accepted / ticked on the target site.
 
 ## Backfill (bulk sync)
 
 Click the extension icon. Leave **dry run** ticked the first time: it collects everything and lists in *Recent* what *would* happen, without touching either site. Untick it and run again for real.
 
-- **NeetCode → LeetCode: sync all** — reads your completed problems on NeetCode, takes the latest accepted submission of each and queues them for LeetCode (problems already accepted on LeetCode are skipped by default).
-- **LeetCode → NeetCode: sync all** — every problem accepted on LeetCode that exists on NeetCode and is not ticked there yet gets ticked; with the `submit code` level the latest accepted LeetCode submission is fetched and run through NeetCode's judge as well.
+- **Sync all →** (NeetCode → LeetCode) — reads your completed problems on NeetCode, takes the latest accepted submission of each and queues them for LeetCode (problems already accepted on LeetCode are skipped).
+- **← Sync all** (LeetCode → NeetCode) — every problem accepted on LeetCode that exists on NeetCode and is not ticked there yet gets ticked; with the `tick + submit code` level the latest accepted LeetCode submission is fetched and run through NeetCode's judge as well.
 
 Submissions are spaced out (30 s by default) to stay well within both sites' rate limits, so 150 problems take roughly 75 minutes; keep the browser open. Ticks alone are quick.
 
