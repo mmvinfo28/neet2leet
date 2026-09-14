@@ -2,6 +2,8 @@
 
 # neetbridge
 
+<p align="center"><a href="https://chromewebstore.google.com/detail/neetbridge/jpmpjekmagppmlfpmdegehoaelhhdomh"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-install-4285F4?logo=googlechrome&logoColor=white" alt="Install from the Chrome Web Store"></a></p>
+
 Two-way sync between [NeetCode](https://neetcode.io) and [LeetCode](https://leetcode.com), as a Chrome extension:
 
 - **NeetCode → LeetCode** — get a problem *Accepted* on NeetCode and the same solution is submitted to the matching LeetCode problem; the LeetCode verdict shows up on the NeetCode page.
@@ -15,14 +17,21 @@ NeetCode (Accepted) ──► neetbridge ──► LeetCode submit ──► ver
 LeetCode (Accepted) ──► neetbridge ──► NeetCode tick (+ judge) ──► toast on LeetCode
 ```
 
-## Install (unpacked)
+## Install
+
+1. Add it from the **[Chrome Web Store](https://chromewebstore.google.com/detail/neetbridge/jpmpjekmagppmlfpmdegehoaelhhdomh)** → *Add to Chrome*.
+2. Log in on **leetcode.com** and **neetcode.io** in the same browser profile.
+3. Solve something on NeetCode. When NeetCode says *Accepted*, a toast appears in the corner with the LeetCode verdict a few seconds later.
+
+Works on Chrome, Edge, Brave and other Chromium browsers (Manifest V3, Chrome 116+).
+
+> New listings are not yet recognised by Chrome's Enhanced Safe Browsing, so the store may show a *"not trusted by Enhanced Safe Browsing"* note on install. It is safe to add; the note clears on its own as installs accumulate.
+
+### Install unpacked (development)
 
 1. Download / clone this repository.
 2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, pick the folder.
-3. Log in on **leetcode.com** and **neetcode.io** in the same browser profile.
-4. Solve something on NeetCode. When NeetCode says *Accepted*, a toast appears in the corner with the LeetCode verdict a few seconds later.
-
-Works on Chrome, Edge, Brave and other Chromium browsers (Manifest V3, Chrome 116+).
+3. Log in on both sites and solve something, as above.
 
 ## Directions and settings
 
@@ -92,7 +101,9 @@ Plain JavaScript, no build step. Load the folder as an unpacked extension and re
 3. New item -> upload the zip -> fill in the listing (all the text, permission justifications and data-usage answers are prepared in [assets/store/listing.md](assets/store/listing.md); screenshots and promo tiles are in `assets/store/`): description, 128 px icon (`icons/icon128.png`; larger renders in `assets/`), at least one 1280x800 screenshot, category *Developer Tools*, single-purpose description, a justification for each permission (`storage`, `scripting`, `alarms`, `notifications` and the three host permissions), the data-usage form (no data collected), and a privacy policy URL - point it at [PRIVACY.md](PRIVACY.md) in this repository.
 4. Submit for review. Reviews usually take a few days; broad host permissions can take longer.
 
-The blue *Verified* badge next to the publisher name comes from verifying a website you own in the dashboard (Search Console). *Featured* is picked by Google's reviewers, not applied for. Until the listing is live, users install the folder as an unpacked extension in Developer mode.
+The blue *Verified* badge next to the publisher name comes from verifying a website you own in the dashboard (Search Console). *Featured* is picked by Google's reviewers, not applied for.
+
+The listing is live at [chromewebstore.google.com/detail/neetbridge/jpmpjekmagppmlfpmdegehoaelhhdomh](https://chromewebstore.google.com/detail/neetbridge/jpmpjekmagppmlfpmdegehoaelhhdomh). A freshly published item is installable by direct link immediately but takes hours to a couple of days to surface in the store's own search, and Enhanced Safe Browsing shows the *not trusted* note until the extension builds a reputation.
 
 ## License
 
