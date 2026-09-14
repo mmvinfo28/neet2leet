@@ -90,21 +90,6 @@ python tools/build_mapping.py          # add --curl behind corporate proxies
 
 Unofficial. Not affiliated with NeetCode or LeetCode. Both sites' internal endpoints can change without notice.
 
-## Development
-
-Plain JavaScript, no build step. Load the folder as an unpacked extension and reload it after edits. `npm test` runs the queue-logic harness (live submit, bulk dedupe, login pause/resume, mapping fallback, signature fixes) against a fake `chrome` API plus the signature-fix unit tests. Service-worker logs: `chrome://extensions` → neetbridge → *service worker*. Page-side logs are prefixed with `[neetbridge]` in the neetcode.io console.
-
-## Publishing to the Chrome Web Store
-
-1. One-time developer registration at the [Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole) (USD 5).
-2. Build the upload: `powershell -ExecutionPolicy Bypass -File tools/pack.ps1` -> `neetbridge-<version>.zip` (manifest at the archive root, no tests/tools).
-3. New item -> upload the zip -> fill in the listing (all the text, permission justifications and data-usage answers are prepared in [assets/store/listing.md](assets/store/listing.md); screenshots and promo tiles are in `assets/store/`): description, 128 px icon (`icons/icon128.png`; larger renders in `assets/`), at least one 1280x800 screenshot, category *Developer Tools*, single-purpose description, a justification for each permission (`storage`, `scripting`, `alarms`, `notifications` and the three host permissions), the data-usage form (no data collected), and a privacy policy URL - point it at [PRIVACY.md](PRIVACY.md) in this repository.
-4. Submit for review. Reviews usually take a few days; broad host permissions can take longer.
-
-The blue *Verified* badge next to the publisher name comes from verifying a website you own in the dashboard (Search Console). *Featured* is picked by Google's reviewers, not applied for.
-
-The listing is live at [chromewebstore.google.com/detail/neetbridge/jpmpjekmagppmlfpmdegehoaelhhdomh](https://chromewebstore.google.com/detail/neetbridge/jpmpjekmagppmlfpmdegehoaelhhdomh). A freshly published item is installable by direct link immediately but takes hours to a couple of days to surface in the store's own search, and Enhanced Safe Browsing shows the *not trusted* note until the extension builds a reputation.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
